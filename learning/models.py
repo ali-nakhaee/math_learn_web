@@ -17,3 +17,17 @@ class ConstantText(models.Model):
     practice = models.ForeignKey(Practice, on_delete=models.CASCADE)
     text = models.TextField()
     step = models.PositiveIntegerField()
+
+
+class Answer(models.Model):
+    """ Each blank field in one practice """
+    practice = models.ForeignKey(Practice, on_delete=models.CASCADE)
+    true_answer = models.CharField(max_length=50)
+    step = models.PositiveIntegerField()
+
+
+class Help(models.Model):
+    """ Help texts for each practice """
+    practice = models.ForeignKey(Practice, on_delete=models.CASCADE)
+    text = models.CharField(max_length=100)
+    step = models.PositiveIntegerField()
