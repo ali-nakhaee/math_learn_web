@@ -1,0 +1,11 @@
+<html>
+    <head>
+        Add Practice
+    </head>
+    <body>
+        <form action="{% url 'learning:add_practice' %}" method='post'>
+            {% csrf_token %}
+            <button name="submit">اضافه کردن تمرین</button>
+        </form>
+    </body>
+</html>
