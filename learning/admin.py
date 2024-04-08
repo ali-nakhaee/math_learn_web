@@ -1,3 +1,22 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Practice, ConstantText, Answer, Help
+
+class ConstantTextInline(admin.TabularInline):
+    model = ConstantText
+    extra = 0
+
+class AnswerInline(admin.TabularInline):
+    model = Answer
+    extra = 0
+
+class HelpInline(admin.TabularInline):
+    model = Help
+    extra = 0
+
+@admin.register(Practice)
+class PracticeAdmin(admin.ModelAdmin):
+    list_display = ['id', 'teacher']
+    list_display_links = ['id', 'teacher']
+    inlines = [ConstantTextInline, AnswerInline, HelpInline]
+
