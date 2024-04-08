@@ -10,4 +10,5 @@ class AddPractice(View):
         return render(request, 'learning/add_practice.html')
     
     def post(self, request):
-        return HttpResponse('hi')
+        fields = request.POST.dict()
+        return HttpResponse(fields.values())

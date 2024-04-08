@@ -1,11 +1,18 @@
-var i = 0;
+var step = 1;
 
-function addMore()
-{
-var x = document.getElementById('add_answer');
-var input1 = document.createElement("input");
-input1.setAttribute("type","text");
-input1.setAttribute("name","i" + i );
-x.appendChild( input1 );
-i++;
+function addField(type) {
+    var practice_form = document.getElementById('practice_form');
+    var input = document.createElement("input");
+    input.setAttribute("type", "text");
+    
+    if (type == 'text') {
+        input.setAttribute("name", "text_" + step);
+    } else if (type == 'answer') {
+        input.setAttribute("name", "answer_" + step);
+    } else if (type == 'help') {
+        input.setAttribute("name", "help_" + step);
+    }
+
+    practice_form.appendChild(input);
+    step++;
 }

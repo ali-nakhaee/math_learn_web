@@ -6,13 +6,13 @@
     </head>
     <body>
         <script src="{% static 'javascripts/add_elements.js' %}"></script>
-        
+
         <h1>اضافه کردن تمرین</h1>
-        <button name="add_constant_text">افزودن متن</button>
-        <button name="add_answer" id="add_answer" onclick="addMore()">افزودن پاسخ</button>
-        <button name="add_help">افزودن راهنمایی</button>
+        <button name="add_constant_text" onclick="addField('text')">افزودن متن</button>
+        <button name="add_answer" onclick="addField('answer')">افزودن پاسخ</button>
+        <button name="add_help" onclick="addField('help')">افزودن راهنمایی</button>
         <hr>
-        <form action="{% url 'learning:add_practice' %}" method='post'>
+        <form id="practice_form" action="{% url 'learning:add_practice' %}" method='post'>
             {% csrf_token %}
             <button name="submit">اضافه کردن تمرین</button>
         </form>
