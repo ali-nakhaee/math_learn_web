@@ -1,10 +1,7 @@
+{% extends "learning/base.html" %}
 {% load static %}
 
-<html>
-    <head>
-        <title>Add Practice</title>
-    </head>
-    <body>
+{% block content %}
         <script src="{% static 'javascripts/add_elements.js' %}"></script>
 
         <h1>اضافه کردن تمرین</h1>
@@ -16,5 +13,4 @@
             {% csrf_token %}
             <button name="submit">اضافه کردن تمرین</button>
         </form>
-    </body>
-</html>
+{% endblock content %}
