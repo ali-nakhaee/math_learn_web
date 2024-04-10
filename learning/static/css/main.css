@@ -1,0 +1,25 @@
+@font-face {
+    font-family: 'samim';
+    src: url('../fonts/samim.ttf') format("truetype");
+  }
+
+html * {
+    font-family: 'samim', sans-serif !important;
+  }
+
+  #progressBar {
+    width: 90%;
+    margin: 10px auto;
+    height: 22px;
+    background-color: #3579f6;
+  }
+  
+  #progressBar div {
+    height: 100%;
+    text-align: left;
+    padding: 0 10px;
+    line-height: 22px; /* same as #progressBar height if we want text middle aligned */
+    width: 0;
+    background-color: #d4d4d4;
+    box-sizing: border-box;}
+    
