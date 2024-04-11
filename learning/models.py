@@ -31,3 +31,12 @@ class Help(models.Model):
     practice = models.ForeignKey(Practice, on_delete=models.CASCADE)
     text = models.CharField(max_length=100)
     step = models.PositiveIntegerField()
+
+
+class Question(models.Model):
+    """ Base question model """
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    variable = models.CharField(max_length=1)
+    true_answer = models.CharField(max_length=50)
+    date_created = models.DateTimeField(auto_now_add=True)
