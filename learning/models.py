@@ -38,5 +38,7 @@ class Question(models.Model):
     teacher = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField()
     variable = models.CharField(max_length=1)
+    variable_min = models.IntegerField()
+    variable_max = models.IntegerField()
     true_answer = models.CharField(max_length=50)
     date_created = models.DateTimeField(auto_now_add=True)

@@ -1,12 +1,29 @@
 """ learning.views file """
+import random
+from sympy import sympify, symbols
 
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse
-from .models import Practice, ConstantText, Answer, Help
+from .models import Practice, ConstantText, Answer, Help, Question
 from users.models import User
 
 sample_user = User.objects.get(username='Ali')
+
+def make_sample_question(base_question_id):
+    """ Function to make sample question from base question """
+    try:
+        base_question = Question.objects.get(id=base_question_id)
+    except Question.DoesNotExist:
+        raise Exception('Base question does not exist')
+    sample_variable = random.randint(base_question.variable_min, base_question.variable_max)
+    sample_question_text = base_question.text.replace(base_question.variable, sample_variable)
+    expression = base_question.true_answer
+    x = symbols(base_question.variable)
+    answer_function = sympify(expression)
+    sample_question_answer = answer_function.subs(x, sample_variable)
+
+
 
 class IndexPage(View):
     def get(self, request):
