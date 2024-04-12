@@ -42,3 +42,27 @@ class Question(models.Model):
     variable_max = models.IntegerField()
     true_answer = models.CharField(max_length=50)
     date_created = models.DateTimeField(auto_now_add=True)
+
+
+class HomeWork(models.Model):
+    """ Base HomeWork model that contains some Questions """
+    title = models.CharField(max_length=50)
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE)
+    questions = models.ManyToManyField(Question)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+
+class SampleHomeWork(models.Model):
+    """ Sample homework for each student """
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    base_homework = models.ForeignKey(HomeWork, on_delete=models.CASCADE)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+
+class SampleQuestion(models.Model):
+    """ Sample question for each base question """
+    base_question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    text = models.TextField()
+    true_answer = models.FloatField()
+    homework = models.ForeignKey(SampleHomeWork, on_delete=models.CASCADE)
+
