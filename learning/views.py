@@ -5,13 +5,19 @@ from sympy import sympify, symbols
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
 from .models import Practice, ConstantText, Answer, Help, Question
 from users.models import User
+from .serializer import QuestionSerializer
 
 sample_user = User.objects.get(username='Ali')
 
 def make_sample_question(base_question_id):
     """ Function to make sample question from base question """
+    # should add as a method to a view
     
     base_question = Question.objects.get(id=base_question_id)
     sample_variable = random.randint(base_question.variable_min, base_question.variable_max)
@@ -54,3 +60,8 @@ class AddPractice(View):
                 Help.objects.create(practice=practice, text=text, step=step)
                 
         return HttpResponse(practice)
+
+
+class AddQuestionAPIView(APIView):
+    pass
+

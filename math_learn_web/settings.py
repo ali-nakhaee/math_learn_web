@@ -35,6 +35,9 @@ INSTALLED_APPS = [
     "users",
     "learning",
 
+    # Third party apps
+    'rest_framework',
+
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
