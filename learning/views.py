@@ -37,6 +37,7 @@ class IndexPage(View):
     def get(self, request):
         return render(request, "learning/index.html")
 
+
 class AddPractice(View):
     def get(self, request):
         return render(request, 'learning/add_practice.html')

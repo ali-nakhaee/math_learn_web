@@ -37,6 +37,7 @@ INSTALLED_APPS = [
 
     # Third party apps
     'rest_framework',
+    'rest_framework.authtoken',
 
     # Django apps
     "django.contrib.admin",
@@ -131,5 +132,11 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # My settings
-LOGIN_URL = 'users:login'
+# LOGIN_URL = 'users:login'
 AUTH_USER_MODEL = 'users.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
