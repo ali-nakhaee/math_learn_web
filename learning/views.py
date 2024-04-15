@@ -10,10 +10,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from .models import Practice, ConstantText, Answer, Help, Question
-from users.models import User
-from .serializer import QuestionSerializer
+from .serializers import QuestionSerializer
 
-sample_user = User.objects.get(username='Ali')
 
 def make_sample_question(base_question_id):
     """ Function to make sample question from base question """
@@ -44,7 +42,7 @@ class AddPractice(View):
     
     def post(self, request):
         fields = request.POST.keys()
-        practice = Practice.objects.create(teacher=sample_user)
+        practice = Practice.objects.create(teacher=request.user)
         for field in fields:
             field_name = field.split('_')[0]
             if field_name == 'text':

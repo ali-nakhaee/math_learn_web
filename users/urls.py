@@ -9,4 +9,5 @@ app_name = 'users'
 urlpatterns = [
     path('login/', obtain_auth_token, name='login'),
     path('logout/', views.LogoutAPIView.as_view(), name='logout'),
+    path('register/', views.RegisterAPIView.as_view(), name='register'),
 ]
