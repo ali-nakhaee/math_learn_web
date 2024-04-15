@@ -64,8 +64,13 @@ class AddPractice(View):
         return HttpResponse(practice)
 
 
-class AddQuestionAPIView(APIView):
+class QuestionAPIView(APIView):
     permission_classes = (IsAuthenticated,)
+
+    def get(self, request: Request):
+        questions = Question.objects.filter(teacher=request.user)
+        questions_serializer = QuestionSerializer(questions, many=True)
+        return Response(questions_serializer.data, status.HTTP_200_OK)
 
     def post(self, request: Request):
         serializer = QuestionSerializer(data=request.data)
