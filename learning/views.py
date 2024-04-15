@@ -6,8 +6,11 @@ from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse
 
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.request import Request
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Practice, ConstantText, Answer, Help, Question
 from .serializers import QuestionSerializer
@@ -62,5 +65,12 @@ class AddPractice(View):
 
 
 class AddQuestionAPIView(APIView):
-    pass
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request: Request):
+        serializer = QuestionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(teacher=request.user)
+            return Response("Question created.", status.HTTP_201_CREATED)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
