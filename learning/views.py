@@ -1,5 +1,6 @@
 """ learning.views file """
 import random
+import time
 from sympy import sympify, symbols
 
 from django.shortcuts import render
@@ -13,7 +14,7 @@ from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Practice, ConstantText, Answer, Help, Question, HomeWork
-from .serializers import QuestionSerializer
+from .serializers import QuestionSerializer, HomeWorkSerializer
 
 
 def make_sample_question(base_question_id):
@@ -89,6 +90,10 @@ class HomeWorksAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request: Request):
-        homeworks = HomeWork.objects.filter(teacher=request.user).order_by('-date_created')
-        # homework serializer that has question serializer as a field
-        
+        start = time.time() * 1000
+        homeworks = HomeWork.objects.filter(teacher=request.user).order_by('-date_created').prefetch_related('questions')
+        serializer = HomeWorkSerializer(homeworks, many=True)
+        data = serializer.data
+        print("duration:", time.time() * 1000 - start)
+        return Response(data, status.HTTP_200_OK)
+    
