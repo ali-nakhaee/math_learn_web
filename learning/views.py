@@ -97,3 +97,10 @@ class HomeWorksAPIView(APIView):
         print("duration:", time.time() * 1000 - start)
         return Response(data, status.HTTP_200_OK)
     
+    def post(self, request: Request):
+        serializer = HomeWorkSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(teacher=request.user)
+            return Response("HomeWork created.", status.HTTP_201_CREATED)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+       

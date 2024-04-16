@@ -14,7 +14,7 @@ class HomeWorkSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field='text'
     )
-    # questions = QuestionSerializer(many=True, read_only=True)
+    # questions = QuestionSerializer(many=True, read_only=True)  # <--- another way to serialize questions
     
     class Meta:
         model = HomeWork
