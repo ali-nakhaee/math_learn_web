@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Practice, ConstantText, Answer, Help, Question
+from .models import Practice, ConstantText, Answer, Help, Question, HomeWork
 from .serializers import QuestionSerializer
 
 
@@ -64,11 +64,11 @@ class AddPractice(View):
         return HttpResponse(practice)
 
 
-class QuestionAPIView(APIView):
+class QuestionsAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request: Request):
-        questions = Question.objects.filter(teacher=request.user)
+        questions = Question.objects.filter(teacher=request.user).order_by('-date_created')
         questions_serializer = QuestionSerializer(questions, many=True)
         return Response(questions_serializer.data, status.HTTP_200_OK)
 
@@ -79,3 +79,16 @@ class QuestionAPIView(APIView):
             return Response("Question created.", status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
+
+class EditQuestionAPIView(APIView):
+    # get, put, delete
+    pass
+
+
+class HomeWorksAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request: Request):
+        homeworks = HomeWork.objects.filter(teacher=request.user).order_by('-date_created')
+        # homework serializer that has question serializer as a field
+        
