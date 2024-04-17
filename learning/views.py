@@ -100,7 +100,7 @@ class HomeWorksAPIView(APIView):
     def post(self, request: Request):
         serializer = HomeWorkSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
-            serializer.save(teacher=request.user)
+            serializer.save()
             return Response("HomeWork created.", status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
        

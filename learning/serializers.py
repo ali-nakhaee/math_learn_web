@@ -33,7 +33,7 @@ class HomeWorkSerializer(serializers.ModelSerializer):
             except:
                 continue
 
-        homework = HomeWork.objects.create(**validated_data)
+        homework = HomeWork.objects.create(teacher=user, **validated_data)
         for question_id in question_ids:
             homework.questions.add(question_id)
         return homework
