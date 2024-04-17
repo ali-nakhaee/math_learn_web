@@ -43,6 +43,9 @@ class Question(models.Model):
     true_answer = models.CharField(max_length=50)
     date_created = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.text
+
 
 class HomeWork(models.Model):
     """ Base HomeWork model that contains some Questions """
@@ -50,6 +53,9 @@ class HomeWork(models.Model):
     teacher = models.ForeignKey(User, on_delete=models.CASCADE)
     questions = models.ManyToManyField(Question)
     date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
 
 
 class SampleHomeWork(models.Model):
