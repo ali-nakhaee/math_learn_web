@@ -13,26 +13,8 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Practice, ConstantText, Answer, Help, Question, HomeWork
-from .serializers import QuestionSerializer, HomeWorkSerializer
-
-
-def make_sample_question(base_question_id):
-    """ Function to make sample question from base question """
-    # should add as a method to a view
-    
-    base_question = Question.objects.get(id=base_question_id)
-    sample_variable = random.randint(base_question.variable_min, base_question.variable_max)
-    sample_question_text = base_question.text.replace(base_question.variable, str(sample_variable))
-    expression = base_question.true_answer
-    x = symbols(base_question.variable)
-    answer_function = sympify(expression)
-    sample_question_answer = float(answer_function.subs(x, sample_variable))
-    print(sample_question_text)
-    print(type(sample_question_answer))
-    print(sample_question_answer)
-    return None
-
+from .models import Practice, ConstantText, Answer, Help, Question, HomeWork, SampleHomeWork, SampleQuestion
+from .serializers import QuestionSerializer, HomeWorkSerializer, SampleQuestionSerializer
 
 
 class IndexPage(View):
@@ -104,3 +86,51 @@ class HomeWorksAPIView(APIView):
             return Response("HomeWork created.", status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
        
+
+class EditHomeWorkAPIView(APIView):
+    # get, put, delete
+    pass
+
+
+"""class GetHomeWorksAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request: Request):
+        homeworks = HomeWork.objects.all()      # <-- need to change
+        serializer = HomeWorkSerializer(homeworks, many=True)
+        return Response(serializer.data, status.HTTP_200_OK)"""
+
+
+class GetHomeWorkAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def make_sample_question(self, base_question_id):
+        """ Function to make sample question from base question """
+
+        base_question = Question.objects.get(id=base_question_id)
+        sample_variable = random.randint(base_question.variable_min, base_question.variable_max)
+        sample_question_text = base_question.text.replace(base_question.variable, str(sample_variable))
+        expression = base_question.true_answer
+        x = symbols(base_question.variable)
+        answer_function = sympify(expression)
+        sample_question_answer = float(answer_function.subs(x, sample_variable))
+        return {"text": sample_question_text, "answer": sample_question_answer}
+
+    def post(self, request: Request, homework_id):
+        try:
+            base_homework = HomeWork.objects.get(id=homework_id)
+        except HomeWork.DoesNotExist:
+            return Response({"message:": "HomeWork Does not Exist"}, status.HTTP_404_NOT_FOUND)
+        # need to check the homework is published for student
+        sample_homework = SampleHomeWork.objects.create(student=request.user, base_homework=base_homework)
+        for base_question in base_homework.questions.all():
+            sample_question = self.make_sample_question(base_question.id)
+            SampleQuestion.objects.create(base_question=base_question,
+                                          text=sample_question["text"],
+                                          true_answer=sample_question["answer"],
+                                          homework=sample_homework)
+            
+        sample_questions = SampleQuestion.objects.filter(homework=sample_homework)
+        serializer = SampleQuestionSerializer(sample_questions, many=True)
+        return Response(serializer.data, status.HTTP_201_CREATED)
+    

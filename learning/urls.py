@@ -9,4 +9,5 @@ urlpatterns = [
     path("add_practice/", views.AddPractice.as_view(), name="add_practice"),
     path("questions/", views.QuestionsAPIView.as_view(), name="questions"),
     path("homeworks/", views.HomeWorksAPIView.as_view(), name="homeworks"),
+    path("get_homework/<int:homework_id>/", views.GetHomeWorkAPIView.as_view(), name="get_homework"),
 ]

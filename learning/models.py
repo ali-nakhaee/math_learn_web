@@ -61,13 +61,13 @@ class HomeWork(models.Model):
 class SampleHomeWork(models.Model):
     """ Sample homework for each student """
     student = models.ForeignKey(User, on_delete=models.CASCADE)
-    base_homework = models.ForeignKey(HomeWork, on_delete=models.CASCADE)
+    base_homework = models.ForeignKey(HomeWork, on_delete=models.PROTECT)
     date_created = models.DateTimeField(auto_now_add=True)
 
 
 class SampleQuestion(models.Model):
     """ Sample question for each base question """
-    base_question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    base_question = models.ForeignKey(Question, on_delete=models.PROTECT)
     text = models.TextField()
     true_answer = models.FloatField()
     homework = models.ForeignKey(SampleHomeWork, on_delete=models.CASCADE)
