@@ -134,10 +134,14 @@ class GetHomeWorkAPIView(APIView):
                                           homework=sample_homework)
             
         sample_questions = SampleQuestion.objects.filter(homework=sample_homework)
+        student_name = str(request.user.first_name) + " " + str(request.user.last_name)
         # serializer = SampleQuestionSerializer(sample_questions, many=True)
         # return Response(serializer.data, status.HTTP_201_CREATED)
         template = get_template("learning/questions_pdf.html")
-        context = {"sample_questions": sample_questions}
+        context = {"sample_questions": sample_questions,
+                   "title": base_homework.title,
+                   "student_name": student_name
+                   }
         html = template.render(context)
         pdf = pdfkit.from_string(html, False, options={"enable-local-file-access": ""})
         response = HttpResponse(pdf, content_type='application/pdf')
