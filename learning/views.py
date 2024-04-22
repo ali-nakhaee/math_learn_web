@@ -2,7 +2,9 @@
 import random
 import time
 from sympy import sympify, symbols
+import pdfkit
 
+from django.template.loader import get_template
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse
@@ -122,6 +124,7 @@ class GetHomeWorkAPIView(APIView):
         except HomeWork.DoesNotExist:
             return Response({"message:": "HomeWork Does not Exist"}, status.HTTP_404_NOT_FOUND)
         # need to check the homework is published for student
+        # need to check if sample_homework for student was made in past
         sample_homework = SampleHomeWork.objects.create(student=request.user, base_homework=base_homework)
         for base_question in base_homework.questions.all():
             sample_question = self.make_sample_question(base_question.id)
@@ -131,6 +134,13 @@ class GetHomeWorkAPIView(APIView):
                                           homework=sample_homework)
             
         sample_questions = SampleQuestion.objects.filter(homework=sample_homework)
-        serializer = SampleQuestionSerializer(sample_questions, many=True)
-        return Response(serializer.data, status.HTTP_201_CREATED)
+        # serializer = SampleQuestionSerializer(sample_questions, many=True)
+        # return Response(serializer.data, status.HTTP_201_CREATED)
+        template = get_template("learning/questions_pdf.html")
+        context = {"sample_questions": sample_questions}
+        html = template.render(context)
+        pdf = pdfkit.from_string(html, False, options={"enable-local-file-access": ""})
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{base_homework.title}.pdf"'
+        return response
     

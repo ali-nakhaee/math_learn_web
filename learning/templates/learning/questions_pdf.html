@@ -1,0 +1,10 @@
+<!DOCTYPE html>  
+<html lang="fa" dir="rtl">  
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    {% for question in sample_questions %}
+        <h4>{{ forloop.counter }} - {{ question.text }}</h4>
+    {% endfor %}
+</body>
