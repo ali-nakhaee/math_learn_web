@@ -16,7 +16,7 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=30, null=True)
     last_name = models.CharField(max_length=30, null=True)
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, default=STUDENT)
-    students = models.ManyToManyField('self', symmetrical=False, related_name='teachers', null=True, blank=True)
+    students = models.ManyToManyField('self', symmetrical=False, related_name='teachers', blank=True)
     key = models.CharField(max_length=8, null=True, blank=True)
 
     def save(self, *args, **kwargs):

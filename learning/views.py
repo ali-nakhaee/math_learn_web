@@ -171,3 +171,21 @@ class GetTeacherKeyAPIView(APIView):
             return Response({"key": key}, status.HTTP_200_OK)
         return Response({"message": "You should be teacher to get key."}, status.HTTP_403_FORBIDDEN)
     
+
+class AddTeacherAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def post(self, request: Request):
+        user = User.objects.get(username=request.user.username)
+        try:
+            key = request.data["key"]
+        except:
+            return Response({"message": "'key' is required."})
+        if user.role == "STUDENT":
+            try:
+                teacher = User.objects.get(key=key)
+            except User.DoesNotExist:
+                return Response({"message": "Key is invalid."}, status.HTTP_400_BAD_REQUEST)
+            user.teachers.add(teacher)
+            return Response({"message": "You added to class."}, status.HTTP_200_OK)
+        return Response({"message": "Not Allowed!"}, status.HTTP_403_FORBIDDEN)
+            
