@@ -10,10 +10,13 @@
         html * {
             font-family: 'samim', sans-serif !important;
         }
+        .float_left{float:left;}
+        .float_right{float:right;}
     </style>
 </head>
 <body>
-    <h2>{{ title }} - {{ student_name }}</h2>
+    <h2><span class="float_right">{{ title }}</span></h2>
+        <h4><span class="float_left">{{ student_name }}</span></h4><br>
     {% for question in sample_questions %}
         <h4>{{ forloop.counter }} - {{ question.text }}</h4>
     {% endfor %}

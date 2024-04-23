@@ -124,15 +124,20 @@ class GetHomeWorkAPIView(APIView):
         except HomeWork.DoesNotExist:
             return Response({"message:": "HomeWork Does not Exist"}, status.HTTP_404_NOT_FOUND)
         # need to check the homework is published for student
-        # need to check if sample_homework for student was made in past
-        sample_homework = SampleHomeWork.objects.create(student=request.user, base_homework=base_homework)
-        for base_question in base_homework.questions.all():
-            sample_question = self.make_sample_question(base_question.id)
-            SampleQuestion.objects.create(base_question=base_question,
-                                          text=sample_question["text"],
-                                          true_answer=sample_question["answer"],
-                                          homework=sample_homework)
-            
+
+        # to check if sample_homework for student was made in past
+        if SampleHomeWork.objects.filter(student=request.user, base_homework=base_homework).exists():
+            sample_homework = SampleHomeWork.objects.filter(student=request.user,
+                                                            base_homework=base_homework).last()
+        else:
+            sample_homework = SampleHomeWork.objects.create(student=request.user, base_homework=base_homework)
+            for base_question in base_homework.questions.all():
+                sample_question = self.make_sample_question(base_question.id)
+                SampleQuestion.objects.create(base_question=base_question,
+                                            text=sample_question["text"],
+                                            true_answer=sample_question["answer"],
+                                            homework=sample_homework)
+                
         sample_questions = SampleQuestion.objects.filter(homework=sample_homework)
         student_name = str(request.user.first_name) + " " + str(request.user.last_name)
         # serializer = SampleQuestionSerializer(sample_questions, many=True)
@@ -145,6 +150,7 @@ class GetHomeWorkAPIView(APIView):
         html = template.render(context)
         pdf = pdfkit.from_string(html, False, options={"enable-local-file-access": ""})
         response = HttpResponse(pdf, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{base_homework.title}.pdf"'
+        file_name = f"sample_homework_{sample_homework.id}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
         return response
     
