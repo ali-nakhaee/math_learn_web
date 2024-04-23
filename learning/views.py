@@ -4,6 +4,7 @@ import time
 from sympy import sympify, symbols
 import pdfkit
 
+from django.utils.crypto import get_random_string
 from django.template.loader import get_template
 from django.shortcuts import render
 from django.views import View
@@ -15,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 
+from users.models import User
 from .models import Practice, ConstantText, Answer, Help, Question, HomeWork, SampleHomeWork, SampleQuestion
 from .serializers import QuestionSerializer, HomeWorkSerializer, SampleQuestionSerializer
 
@@ -153,4 +155,19 @@ class GetHomeWorkAPIView(APIView):
         file_name = f"sample_homework_{sample_homework.id}.pdf"
         response['Content-Disposition'] = f'attachment; filename="{file_name}"'
         return response
+    
+
+class GetTeacherKeyAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def post(self, request: Request):
+        user = User.objects.get(username=request.user.username)
+        if user.role == 'TEACHER':
+            if user.key:
+                key = user.key
+            else:
+                key = get_random_string(length=8)
+                user.key = key
+                user.save()
+            return Response({"key": key}, status.HTTP_200_OK)
+        return Response({"message": "You should be teacher to get key."}, status.HTTP_403_FORBIDDEN)
     
