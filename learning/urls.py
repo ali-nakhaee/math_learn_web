@@ -12,4 +12,5 @@ urlpatterns = [
     path("get_homework/<int:homework_id>/", views.GetHomeWorkAPIView.as_view(), name="get_homework"),
     path("get_key/", views.GetTeacherKeyAPIView.as_view(), name="get_key"),
     path("add_teacher/", views.AddTeacherAPIView.as_view(), name="add_teacher"),
+    path("homeworks_list/", views.HomeWorksListAPIView.as_view(), name="homeworks_list"),
 ]

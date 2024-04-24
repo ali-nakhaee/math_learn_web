@@ -21,6 +21,15 @@ class HomeWorkSerializer(serializers.ModelSerializer):
         model = HomeWork
         fields = ['title', 'questions', 'id']
 
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
     def create(self, validated_data):
         """ Get question_ids, check teacher of questions and add questions to homework"""
         user = self.context["request"].user

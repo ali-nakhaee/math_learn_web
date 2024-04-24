@@ -105,6 +105,15 @@ class EditHomeWorkAPIView(APIView):
         return Response(serializer.data, status.HTTP_200_OK)"""
 
 
+class HomeWorksListAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request: Request):
+        homeworks = HomeWork.objects.filter(teacher__students=request.user)
+        serializer = HomeWorkSerializer(homeworks, fields=('title', 'id'), many=True)
+        return Response(serializer.data, status.HTTP_200_OK)
+
+
 class GetHomeWorkAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -160,14 +169,13 @@ class GetHomeWorkAPIView(APIView):
 class GetTeacherKeyAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     def post(self, request: Request):
-        user = User.objects.get(username=request.user.username)
-        if user.role == 'TEACHER':
-            if user.key:
-                key = user.key
+        if request.user.role == 'TEACHER':
+            if request.user.key:
+                key = request.user.key
             else:
                 key = get_random_string(length=8)
-                user.key = key
-                user.save()
+                request.user.key = key
+                request.user.save()
             return Response({"key": key}, status.HTTP_200_OK)
         return Response({"message": "You should be teacher to get key."}, status.HTTP_403_FORBIDDEN)
     
@@ -175,17 +183,16 @@ class GetTeacherKeyAPIView(APIView):
 class AddTeacherAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     def post(self, request: Request):
-        user = User.objects.get(username=request.user.username)
         try:
             key = request.data["key"]
         except:
             return Response({"message": "'key' is required."})
-        if user.role == "STUDENT":
+        if request.user.role == "STUDENT":
             try:
                 teacher = User.objects.get(key=key)
             except User.DoesNotExist:
                 return Response({"message": "Key is invalid."}, status.HTTP_400_BAD_REQUEST)
-            user.teachers.add(teacher)
+            request.user.teachers.add(teacher)
             return Response({"message": "You added to class."}, status.HTTP_200_OK)
         return Response({"message": "Not Allowed!"}, status.HTTP_403_FORBIDDEN)
             
