@@ -96,15 +96,6 @@ class EditHomeWorkAPIView(APIView):
     pass
 
 
-"""class GetHomeWorksAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request: Request):
-        homeworks = HomeWork.objects.all()      # <-- need to change
-        serializer = HomeWorkSerializer(homeworks, many=True)
-        return Response(serializer.data, status.HTTP_200_OK)"""
-
-
 class HomeWorksListAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
