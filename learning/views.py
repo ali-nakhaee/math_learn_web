@@ -124,8 +124,11 @@ class GetHomeWorkAPIView(APIView):
         try:
             base_homework = HomeWork.objects.get(id=homework_id)
         except HomeWork.DoesNotExist:
-            return Response({"message:": "HomeWork Does not Exist"}, status.HTTP_404_NOT_FOUND)
-        # need to check the homework is published for student
+            return Response({"message": "HomeWork Does not Exist"}, status.HTTP_404_NOT_FOUND)
+        # to check the homework is published for student
+        allowed_homeworks = HomeWork.objects.filter(teacher__students=request.user, is_published=True)
+        if base_homework not in allowed_homeworks:
+            return Response({"message": "This homework in not for you."}, status.HTTP_403_FORBIDDEN)
 
         # to check if sample_homework for student was made in past
         if SampleHomeWork.objects.filter(student=request.user, base_homework=base_homework).exists():
