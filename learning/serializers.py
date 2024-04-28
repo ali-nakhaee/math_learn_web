@@ -53,3 +53,4 @@ class SampleQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleQuestion
         fields = ['text', 'true_answer']
+

@@ -73,3 +73,14 @@ class SampleQuestion(models.Model):
     true_answer = models.FloatField()
     homework = models.ForeignKey(SampleHomeWork, on_delete=models.CASCADE)
 
+
+class HomeWorkAnswer(models.Model):
+    sample_homework = models.ForeignKey(SampleHomeWork, on_delete=models.CASCADE)
+    percent = models.FloatField()
+    date_created = models.DateTimeField(auto_now_add=True)
+
+
+class QuestionAnswer(models.Model):
+    sample_question = models.ForeignKey(SampleQuestion, on_delete=models.CASCADE)
+    answer = models.CharField(max_length=20)
+    homework_answer = models.ForeignKey(HomeWorkAnswer, on_delete=models.CASCADE)

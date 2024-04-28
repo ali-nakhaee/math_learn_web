@@ -100,7 +100,7 @@ class HomeWorksListAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request: Request):
-        homeworks = HomeWork.objects.filter(teacher__students=request.user)
+        homeworks = HomeWork.objects.filter(teacher__students=request.user, is_published=True)
         serializer = HomeWorkSerializer(homeworks, fields=('title', 'id'), many=True)
         return Response(serializer.data, status.HTTP_200_OK)
 
@@ -189,4 +189,5 @@ class AddTeacherAPIView(APIView):
             request.user.teachers.add(teacher)
             return Response({"message": "You added to class."}, status.HTTP_200_OK)
         return Response({"message": "Not Allowed!"}, status.HTTP_403_FORBIDDEN)
-            
+
+
