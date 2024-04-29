@@ -54,3 +54,12 @@ class SampleQuestionSerializer(serializers.ModelSerializer):
         model = SampleQuestion
         fields = ['text', 'true_answer']
 
+
+class QuestionAnswerSerializer(serializers.Serializer):
+    question_num = serializers.IntegerField()
+    answer = serializers.CharField(max_length=20)
+
+
+class HomeWorkAnswerSerializer(serializers.Serializer):
+    questions = QuestionAnswerSerializer(many=True)
+    sample_homework_id = serializers.IntegerField()

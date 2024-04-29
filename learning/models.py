@@ -71,7 +71,8 @@ class SampleQuestion(models.Model):
     base_question = models.ForeignKey(Question, on_delete=models.PROTECT)
     text = models.TextField()
     true_answer = models.FloatField()
-    homework = models.ForeignKey(SampleHomeWork, on_delete=models.CASCADE)
+    homework = models.ForeignKey(SampleHomeWork, on_delete=models.CASCADE, related_name="questions")
+    number = models.IntegerField()
 
 
 class HomeWorkAnswer(models.Model):
@@ -83,4 +84,4 @@ class HomeWorkAnswer(models.Model):
 class QuestionAnswer(models.Model):
     sample_question = models.ForeignKey(SampleQuestion, on_delete=models.CASCADE)
     answer = models.CharField(max_length=20)
-    homework_answer = models.ForeignKey(HomeWorkAnswer, on_delete=models.CASCADE)
+    homework_answer = models.ForeignKey(HomeWorkAnswer, on_delete=models.CASCADE, related_name="questions")
