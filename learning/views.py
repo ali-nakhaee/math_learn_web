@@ -17,8 +17,8 @@ from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 
 from users.models import User
-from .models import Practice, ConstantText, Answer, Help, Question, HomeWork, SampleHomeWork, SampleQuestion
-from .serializers import QuestionSerializer, HomeWorkSerializer, SampleQuestionSerializer
+from .models import Practice, ConstantText, Answer, Help, Question, HomeWork, SampleHomeWork, SampleQuestion, HomeWorkAnswer, QuestionAnswer
+from .serializers import QuestionSerializer, HomeWorkSerializer, SampleQuestionSerializer, HomeWorkAnswerSerializer
 
 
 class IndexPage(View):
@@ -191,3 +191,41 @@ class AddTeacherAPIView(APIView):
         return Response({"message": "Not Allowed!"}, status.HTTP_403_FORBIDDEN)
 
 
+class HomeWorkAnswerEvaluationAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def post(self, request: Request):
+        serializer = HomeWorkAnswerSerializer(data=request.data)
+        if serializer.is_valid():
+            sample_homework_id = serializer.data.get("sample_homework_id")
+            try:
+                sample_homework = SampleHomeWork.objects.get(id=sample_homework_id)
+            except SampleHomeWork.DoesNotExist:
+                return Response({"message": "Sample HomeWork does not exist"}, status.HTTP_404_NOT_FOUND)
+            if sample_homework.student != request.user:
+                return Response({"message": "This sample homework is not yours."})
+            sample_homework_questions = SampleQuestion.objects.filter(homework=sample_homework)
+            student_answers = serializer.data.get("questions")
+            homework_answer = HomeWorkAnswer.objects.create(sample_homework=sample_homework, percent=0)
+            true_answers = 0
+            all_questions_num = sample_homework_questions.count()
+            # need to check for n+1 queries
+            for student_answer in student_answers:
+                for sample_question in sample_homework_questions:
+                    if student_answer["question_num"] == sample_question.number:
+                        if student_answer["answer"] == sample_question.true_answer:
+                            evaluation = True
+                            true_answers += 1
+                        else:
+                            evaluation = False
+                        QuestionAnswer.objects.create(sample_question=sample_question,
+                                                      answer=student_answer["answer"],
+                                                      homework_answer=homework_answer,
+                                                      evaluation=evaluation)
+            if all_questions_num != 0:
+                percent = (true_answers / all_questions_num) * 100
+                homework_answer.percent = percent
+                homework_answer.save()
+            return Response({"message": f"Your answer saved. Your percent is {percent}"}, status.HTTP_201_CREATED)
+
+        else:
+            return Response({"Error(s)": serializer.errors}, status.HTTP_400_BAD_REQUEST)

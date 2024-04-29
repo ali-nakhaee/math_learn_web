@@ -57,7 +57,7 @@ class SampleQuestionSerializer(serializers.ModelSerializer):
 
 class QuestionAnswerSerializer(serializers.Serializer):
     question_num = serializers.IntegerField()
-    answer = serializers.CharField(max_length=20)
+    answer = serializers.FloatField()
 
 
 class HomeWorkAnswerSerializer(serializers.Serializer):
