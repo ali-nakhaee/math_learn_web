@@ -208,19 +208,22 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
             homework_answer = HomeWorkAnswer.objects.create(sample_homework=sample_homework, percent=0)
             true_answers = 0
             all_questions_num = sample_homework_questions.count()
+            checked_questions_numbers = []
             # need to check for n+1 queries
             for student_answer in student_answers:
-                for sample_question in sample_homework_questions:
-                    if student_answer["question_num"] == sample_question.number:
-                        if student_answer["answer"] == sample_question.true_answer:
-                            evaluation = True
-                            true_answers += 1
-                        else:
-                            evaluation = False
-                        QuestionAnswer.objects.create(sample_question=sample_question,
-                                                      answer=student_answer["answer"],
-                                                      homework_answer=homework_answer,
-                                                      evaluation=evaluation)
+                if int(student_answer["question_num"]) not in checked_questions_numbers:    # to avoid recheck duplicate answer
+                    for sample_question in sample_homework_questions:
+                        if int(student_answer["question_num"]) == sample_question.number:
+                            if student_answer["answer"] == sample_question.true_answer:
+                                evaluation = True
+                                true_answers += 1
+                            else:
+                                evaluation = False
+                            QuestionAnswer.objects.create(sample_question=sample_question,
+                                                        answer=student_answer["answer"],
+                                                        homework_answer=homework_answer,
+                                                        evaluation=evaluation)
+                            checked_questions_numbers.append(int(student_answer["question_num"]))
             if all_questions_num != 0:
                 percent = (true_answers / all_questions_num) * 100
                 homework_answer.percent = percent
