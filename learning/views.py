@@ -209,6 +209,7 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
             true_answers = 0
             all_questions_num = sample_homework_questions.count()
             checked_questions_numbers = []
+            message = {"message": "Your answer is saved."}
             # need to check for n+1 queries
             for student_answer in student_answers:
                 if int(student_answer["question_num"]) not in checked_questions_numbers:    # to avoid recheck duplicate answer
@@ -224,11 +225,13 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                                                         homework_answer=homework_answer,
                                                         evaluation=evaluation)
                             checked_questions_numbers.append(int(student_answer["question_num"]))
+                            message[f"question_num_{int(student_answer["question_num"])}"] = evaluation
             if all_questions_num != 0:
                 percent = (true_answers / all_questions_num) * 100
                 homework_answer.percent = percent
                 homework_answer.save()
-            return Response({"message": f"Your answer saved. Your percent is {percent}"}, status.HTTP_201_CREATED)
+                message["Final percent"] = percent
+            return Response(message, status.HTTP_201_CREATED)
 
         else:
             return Response({"Error(s)": serializer.errors}, status.HTTP_400_BAD_REQUEST)
