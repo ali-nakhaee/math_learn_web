@@ -9,6 +9,7 @@ urlpatterns = [
     path("add_practice/", views.AddPractice.as_view(), name="add_practice"),
     path("questions/", views.QuestionsAPIView.as_view(), name="questions"),
     path("homeworks/", views.HomeWorksAPIView.as_view(), name="homeworks"),
+    path("edit_homework/<int:base_homework_id>/", views.EditHomeWorkAPIView.as_view(), name="edit_homework"),
     path("get_homework/<int:homework_id>/", views.GetHomeWorkAPIView.as_view(), name="get_homework"),
     path("get_key/", views.GetTeacherKeyAPIView.as_view(), name="get_key"),
     path("add_teacher/", views.AddTeacherAPIView.as_view(), name="add_teacher"),

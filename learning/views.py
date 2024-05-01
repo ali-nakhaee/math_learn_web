@@ -73,6 +73,7 @@ class EditQuestionAPIView(APIView):
 
 
 class HomeWorksAPIView(APIView):
+    """ Get homeworks list and Post to create a new homework for teacher"""
     permission_classes = (IsAuthenticated,)
 
     def get(self, request: Request):
@@ -89,17 +90,48 @@ class HomeWorksAPIView(APIView):
             serializer.save()
             return Response("HomeWork created.", status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-       
+
 
 class EditHomeWorkAPIView(APIView):
     # get, put, delete
-    pass
+    permission_classes = (IsAuthenticated,)
+    def get(self, request: Request, base_homework_id):
+        """ Return the base_homework detail and the list of answers to specific base_homework for teacher. """
+        try:
+            base_homework = HomeWork.objects.get(id=base_homework_id)
+        except HomeWork.DoesNotExist:
+            return Response({"message": "This homework does not exist."}, status.HTTP_404_NOT_FOUND)
+        if base_homework.teacher != request.user:
+            return Response({"message": "This homework is not yours."})
+        sample_homeworks = SampleHomeWork.objects.filter(base_homework=base_homework)
+        homework_answers = HomeWorkAnswer.objects.filter(sample_homework__in=sample_homeworks).select_related('sample_homework')
+        student_list = []
+        results = []
+        for homework_answer in homework_answers:
+            student = homework_answer.sample_homework.student
+            if student not in student_list:
+                student_list.append(student)
+                results.append({"student_id": student.id,
+                                "name": student.last_name,
+                                "percent": homework_answer.percent,
+                                "try_num": 1})
+            else:
+                for i in range(len(results)):
+                    if results[i]["student_id"] == student.id:
+                        if results[i]["percent"] < homework_answer.percent:
+                            results[i]["percent"] = homework_answer.percent
+                        results[i]["try_num"] += 1
+        print(results)
+        return Response({"message": "Results printed!"}, status.HTTP_200_OK)
+
+
 
 
 class HomeWorksListAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request: Request):
+        """ Return a list of published homeworks for the student. """
         homeworks = HomeWork.objects.filter(teacher__students=request.user, is_published=True)
         serializer = HomeWorkSerializer(homeworks, fields=('title', 'id'), many=True)
         return Response(serializer.data, status.HTTP_200_OK)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Question, HomeWork, SampleQuestion
+from .models import Question, HomeWork, SampleQuestion, HomeWorkAnswer
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -19,7 +19,7 @@ class HomeWorkSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = HomeWork
-        fields = ['title', 'questions', 'id']
+        fields = ['title', 'questions', 'id', 'is_published']
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
