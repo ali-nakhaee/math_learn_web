@@ -106,23 +106,24 @@ class EditHomeWorkAPIView(APIView):
         sample_homeworks = SampleHomeWork.objects.filter(base_homework=base_homework)
         homework_answers = HomeWorkAnswer.objects.filter(sample_homework__in=sample_homeworks).select_related('sample_homework')
         student_list = []
-        results = []
+        answers = []
         for homework_answer in homework_answers:
             student = homework_answer.sample_homework.student
             if student not in student_list:
                 student_list.append(student)
-                results.append({"student_id": student.id,
-                                "name": student.last_name,
+                answers.append({"student_id": student.id,
+                                "first_name": student.first_name,
+                                "last_name": student.last_name,
                                 "percent": homework_answer.percent,
                                 "try_num": 1})
             else:
-                for i in range(len(results)):
-                    if results[i]["student_id"] == student.id:
-                        if results[i]["percent"] < homework_answer.percent:
-                            results[i]["percent"] = homework_answer.percent
-                        results[i]["try_num"] += 1
-        print(results)
-        return Response({"message": "Results printed!"}, status.HTTP_200_OK)
+                for i in range(1, len(answers)):
+                    if answers[i]["student_id"] == student.id:
+                        if answers[i]["percent"] < homework_answer.percent:
+                            answers[i]["percent"] = homework_answer.percent
+                        answers[i]["try_num"] += 1
+        data = [{"homework_details": HomeWorkSerializer(base_homework).data}, {"answers": answers}]
+        return Response(data, status.HTTP_200_OK)
 
 
 
@@ -168,12 +169,13 @@ class GetHomeWorkAPIView(APIView):
                                                             base_homework=base_homework).last()
         else:
             sample_homework = SampleHomeWork.objects.create(student=request.user, base_homework=base_homework)
-            for base_question in base_homework.questions.all():
+            for idx, base_question in enumerate(base_homework.questions.all(), start=1):
                 sample_question = self.make_sample_question(base_question.id)
                 SampleQuestion.objects.create(base_question=base_question,
                                             text=sample_question["text"],
                                             true_answer=sample_question["answer"],
-                                            homework=sample_homework)
+                                            homework=sample_homework,
+                                            number=idx)
                 
         sample_questions = SampleQuestion.objects.filter(homework=sample_homework)
         student_name = str(request.user.first_name) + " " + str(request.user.last_name)
