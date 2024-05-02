@@ -126,8 +126,6 @@ class EditHomeWorkAPIView(APIView):
         return Response(data, status.HTTP_200_OK)
 
 
-
-
 class HomeWorksListAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -139,6 +137,7 @@ class HomeWorksListAPIView(APIView):
 
 
 class GetHomeWorkAPIView(APIView):
+    """ To create a pdf file that contains sample questions for a specific homework for student. """
     permission_classes = (IsAuthenticated,)
 
     def make_sample_question(self, base_question_id):

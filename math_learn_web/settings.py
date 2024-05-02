@@ -34,7 +34,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     # My apps
     "users",
-    "learning",
+    "learning.apps.LearningConfig",
 
     # Third party apps
     'rest_framework',
