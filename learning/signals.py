@@ -14,8 +14,8 @@ def change_sample_questions(sender, instance, created, **kwargs):
             new_sample_question = make_sample_question(instance.id)
             sample_question.text = new_sample_question["text"]
             sample_question.true_answer = new_sample_question["answer"]
-            print("change sample question signal ")
             sample_question.save()
+            # need to send email to student for this change
 
 
 

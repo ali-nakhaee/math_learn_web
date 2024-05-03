@@ -222,7 +222,7 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
             except SampleHomeWork.DoesNotExist:
                 return Response({"message": "Sample HomeWork does not exist"}, status.HTTP_404_NOT_FOUND)
             if sample_homework.student != request.user:
-                return Response({"message": "This sample homework is not yours."})
+                return Response({"message": "This sample homework is not yours."}, status.HTTP_403_FORBIDDEN)
             sample_homework_questions = SampleQuestion.objects.filter(homework=sample_homework)
             student_answers = serializer.data.get("questions")
             homework_answer = HomeWorkAnswer.objects.create(sample_homework=sample_homework, percent=0)
