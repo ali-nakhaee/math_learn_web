@@ -1,7 +1,5 @@
 """ learning.views file """
-import random
 import time
-from sympy import sympify, symbols
 import pdfkit
 
 from django.utils.crypto import get_random_string
@@ -19,6 +17,7 @@ from rest_framework.permissions import IsAuthenticated
 from users.models import User
 from .models import Practice, ConstantText, Answer, Help, Question, HomeWork, SampleHomeWork, SampleQuestion, HomeWorkAnswer, QuestionAnswer
 from .serializers import QuestionSerializer, HomeWorkSerializer, SampleQuestionSerializer, HomeWorkAnswerSerializer
+from .math_functions import make_sample_question
 
 
 class IndexPage(View):
@@ -140,18 +139,6 @@ class GetHomeWorkAPIView(APIView):
     """ To create a pdf file that contains sample questions for a specific homework for student. """
     permission_classes = (IsAuthenticated,)
 
-    def make_sample_question(self, base_question_id):
-        """ Function to make sample question from base question """
-
-        base_question = Question.objects.get(id=base_question_id)
-        sample_variable = random.randint(base_question.variable_min, base_question.variable_max)
-        sample_question_text = base_question.text.replace(base_question.variable, str(sample_variable))
-        expression = base_question.true_answer
-        x = symbols(base_question.variable)
-        answer_function = sympify(expression)
-        sample_question_answer = float(answer_function.subs(x, sample_variable))
-        return {"text": sample_question_text, "answer": sample_question_answer}
-
     def post(self, request: Request, homework_id):
         try:
             base_homework = HomeWork.objects.get(id=homework_id)
@@ -169,7 +156,7 @@ class GetHomeWorkAPIView(APIView):
         else:
             sample_homework = SampleHomeWork.objects.create(student=request.user, base_homework=base_homework)
             for idx, base_question in enumerate(base_homework.questions.all(), start=1):
-                sample_question = self.make_sample_question(base_question.id)
+                sample_question = make_sample_question(base_question.id)
                 SampleQuestion.objects.create(base_question=base_question,
                                             text=sample_question["text"],
                                             true_answer=sample_question["answer"],
