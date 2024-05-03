@@ -83,6 +83,6 @@ class HomeWorkAnswer(models.Model):
 
 class QuestionAnswer(models.Model):
     sample_question = models.ForeignKey(SampleQuestion, on_delete=models.CASCADE)
-    answer = models.FloatField()
+    answer = models.FloatField(null=True, blank=True)
     homework_answer = models.ForeignKey(HomeWorkAnswer, on_delete=models.CASCADE, related_name="questions")
     evaluation = models.BooleanField()
