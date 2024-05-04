@@ -116,7 +116,7 @@ class EditHomeWorkAPIView(APIView):
                                 "percent": homework_answer.percent,
                                 "try_num": 1})
             else:
-                for i in range(1, len(answers)):
+                for i in range(len(answers)):
                     if answers[i]["student_id"] == student.id:
                         if answers[i]["percent"] < homework_answer.percent:
                             answers[i]["percent"] = homework_answer.percent

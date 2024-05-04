@@ -11,6 +11,7 @@ from users.models import User
 class HomeWorkAnswerEvaluationViewTest(TestCase):
     def setUp(self):
         teacher = User.objects.create(username='teacher', password='123')
+        student = User.objects.create(username='student', password='123')
         base_question = Question.objects.create(teacher=teacher,
                                                 text=' ',
                                                 variable=' ',
@@ -20,7 +21,7 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
         base_homework = HomeWork.objects.create(teacher=teacher,
                                                 title=' ')
         base_homework.questions.add(base_question)
-        sample_homework = SampleHomeWork.objects.create(student=teacher,
+        sample_homework = SampleHomeWork.objects.create(student=student,
                                                         base_homework=base_homework)
         sample_question_1 = SampleQuestion.objects.create(base_question=base_question,
                                                           text="2+2=",
@@ -32,12 +33,14 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                           true_answer=6,
                                                           homework=sample_homework,
                                                           number=2)
-        token = Token.objects.create(user=teacher)
-        token.save()
+        teacher_token = Token.objects.create(user=teacher)
+        teacher_token.save()
+        student_token = Token.objects.create(user=student)
+        student_token.save()
         
     def test_does_not_exist_homework(self):
         """ Post data with 'sample_homework_id=2' that does not exist. """
-        user_id = User.objects.get(username='teacher').id
+        user_id = User.objects.get(username='student').id
         token = Token.objects.get(user_id=user_id)
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
@@ -52,7 +55,7 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
 
     def test_invalid_data(self):
         """ Post invalid data with key 'sample_homework_ids' """
-        user_id = User.objects.get(username='teacher').id
+        user_id = User.objects.get(username='student').id
         token = Token.objects.get(user_id=user_id)
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
@@ -65,3 +68,19 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                         content_type="application/json")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data["Error(s)"], {"sample_homework_id": ["This field is required."]})
+
+    def test_student_owning_homework(self):
+        """ Post data for not owning sample_homework """
+        user_id = User.objects.get(username='teacher').id
+        token = Token.objects.get(user_id=user_id)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        response = client.post("/homework_evaluation/", json.dumps({"questions": [
+                                                                {"question_num": 1,
+                                                                    "answer": 9},
+                                                                {"question_num": 2,
+                                                                    "answer": 18}],
+                                                        "sample_homework_id": 1}),
+                                                        content_type="application/json")
+        self.assertEqual(response.status_code, 403)
+        
