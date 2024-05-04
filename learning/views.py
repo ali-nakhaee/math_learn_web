@@ -246,6 +246,16 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                                                         evaluation=evaluation)
                             checked_questions_numbers.append(int(student_answer["question_num"]))
                             message[f"question_num_{int(student_answer["question_num"])}"] = evaluation
+            sample_homework_question_numbers = list(sample_homework_questions.values_list("number", flat=True))
+
+            # To create blank answers
+            for question_number in set(sample_homework_question_numbers) - set(checked_questions_numbers):
+                sample_question = sample_homework_questions.filter(number=question_number).last()
+                QuestionAnswer.objects.create(sample_question=sample_question,
+                                              answer=None,
+                                              homework_answer=homework_answer,
+                                              evaluation=False)
+                message[f"question_num_{question_number}"] = False
             if all_questions_num != 0:
                 percent = (true_answers / all_questions_num) * 100
                 homework_answer.percent = percent

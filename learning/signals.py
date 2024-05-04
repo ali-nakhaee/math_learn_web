@@ -25,5 +25,3 @@ def reevaluate_answers(sender, instance, created, **kwargs):
     if not created:
         question_answers = QuestionAnswer.objects.filter(sample_question=instance)
         question_answers.update(answer=None, evaluation=False)
-        print("reevaluate signal")
-            
