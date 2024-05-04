@@ -12,23 +12,29 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
     def setUp(self):
         teacher = User.objects.create(username='teacher', password='123')
         student = User.objects.create(username='student', password='123')
-        base_question = Question.objects.create(teacher=teacher,
-                                                text=' ',
-                                                variable=' ',
+        base_question_1 = Question.objects.create(teacher=teacher,
+                                                text='2+x=',
+                                                variable='x',
                                                 variable_min=0,
                                                 variable_max=10,
-                                                true_answer=' ')
+                                                true_answer='2 + x')
+        base_question_2 = Question.objects.create(teacher=teacher,
+                                                text='3+y=',
+                                                variable='y',
+                                                variable_min=0,
+                                                variable_max=10,
+                                                true_answer='3 + y')
         base_homework = HomeWork.objects.create(teacher=teacher,
-                                                title=' ')
-        base_homework.questions.add(base_question)
+                                                title='Base HomeWork')
+        base_homework.questions.add(base_question_1, base_question_2)
         sample_homework = SampleHomeWork.objects.create(student=student,
                                                         base_homework=base_homework)
-        sample_question_1 = SampleQuestion.objects.create(base_question=base_question,
+        sample_question_1 = SampleQuestion.objects.create(base_question=base_question_1,
                                                           text="2+2=",
                                                           true_answer=4,
                                                           homework=sample_homework,
                                                           number=1)
-        sample_question_2 = SampleQuestion.objects.create(base_question=base_question,
+        sample_question_2 = SampleQuestion.objects.create(base_question=base_question_2,
                                                           text="3+3=",
                                                           true_answer=6,
                                                           homework=sample_homework,
@@ -83,4 +89,34 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                         "sample_homework_id": 1}),
                                                         content_type="application/json")
         self.assertEqual(response.status_code, 403)
-        
+
+    def test_evaluation_process(self):
+        """ Post correct data and check evaluation process """
+        user_id = User.objects.get(username='student').id
+        token = Token.objects.get(user_id=user_id)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        response = client.post("/homework_evaluation/", json.dumps({"questions": [
+                                                                {"question_num": 1,
+                                                                    "answer": 4},
+                                                                {"question_num": 2,
+                                                                    "answer": 18}],
+                                                        "sample_homework_id": 1}),
+                                                        content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(QuestionAnswer.objects.all().count(), 2)
+        self.assertEqual(HomeWorkAnswer.objects.get(id=1).percent, 50)
+
+    def test_creating_blank_answers(self):
+        """ Check creating blank answers """
+        user_id = User.objects.get(username='student').id
+        token = Token.objects.get(user_id=user_id)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        response = client.post("/homework_evaluation/", json.dumps({"questions": [
+                                                                {"question_num": 1,
+                                                                    "answer": 4}],
+                                                        "sample_homework_id": 1}),
+                                                        content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(QuestionAnswer.objects.all().count(), 2)
