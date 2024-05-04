@@ -49,4 +49,19 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                         "sample_homework_id": 2}),
                                                         content_type="application/json")
         self.assertEqual(response.status_code, 404)
-        
+
+    def test_invalid_data(self):
+        """ Post invalid data with key 'sample_homework_ids' """
+        user_id = User.objects.get(username='teacher').id
+        token = Token.objects.get(user_id=user_id)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        response = client.post("/homework_evaluation/", json.dumps({"questions": [
+                                                                {"question_num": 1,
+                                                                    "answer": 9},
+                                                                {"question_num": 2,
+                                                                    "answer": 18}],
+                                                        "sample_homework_ids": 1}),
+                                                        content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["Error(s)"], {"sample_homework_id": ["This field is required."]})
