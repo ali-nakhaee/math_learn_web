@@ -255,7 +255,7 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                                               answer=None,
                                               homework_answer=homework_answer,
                                               evaluation=False)
-                message[f"question_num_{question_number}"] = False
+                message[f"question_num_{question_number}"] = "Blank"
             if all_questions_num != 0:
                 percent = (true_answers / all_questions_num) * 100
                 homework_answer.percent = percent

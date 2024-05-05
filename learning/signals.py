@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 
-from .models import Question, SampleQuestion, QuestionAnswer
+from .models import Question, SampleQuestion, QuestionAnswer, HomeWorkAnswer
 from .math_functions import make_sample_question
 
 
@@ -21,7 +21,19 @@ def change_sample_questions(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=SampleQuestion)
 def reevaluate_answers(sender, instance, created, **kwargs):
-    """ Function for deleting previous student answers to the sample question that changed """
+    """ To deleting previous student answers to the sample question
+    that changed and reevaluate homework_answers """
     if not created:
         question_answers = QuestionAnswer.objects.filter(sample_question=instance)
         question_answers.update(answer=None, evaluation=False)
+        homework_answers = HomeWorkAnswer.objects.filter(questions__in=question_answers)
+        for homework_answer in homework_answers:
+            sample_homework = homework_answer.sample_homework
+            all_questions_num = SampleQuestion.objects.filter(homework=sample_homework).count()
+            true_answers_num = QuestionAnswer.objects.filter(homework_answer=homework_answer, evaluation=True).count()
+            if all_questions_num != 0:
+                percent = (true_answers_num / all_questions_num) * 100
+            else:
+                percent = 0
+            homework_answer.percent = percent
+            homework_answer.save()

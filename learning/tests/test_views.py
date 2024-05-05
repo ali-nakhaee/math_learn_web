@@ -120,3 +120,5 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                         content_type="application/json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(QuestionAnswer.objects.all().count(), 2)
+        self.assertEqual(HomeWorkAnswer.objects.get(id=1).percent, 50)
+        
