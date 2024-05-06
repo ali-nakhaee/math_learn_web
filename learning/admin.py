@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Practice, ConstantText, Answer, Help, Question, HomeWork, SampleHomeWork, SampleQuestion, HomeWorkAnswer, QuestionAnswer
+from .models import Practice, ConstantText, Answer, Help, Question, HomeWork, SampleHomeWork, SampleQuestion, HomeWorkAnswer, QuestionAnswer, Containing
 
 class ConstantTextInline(admin.TabularInline):
     model = ConstantText
@@ -27,10 +27,16 @@ class QuestionAdmin(admin.ModelAdmin):
     list_display_links = ['id', 'teacher']
 
 
+class ContainingInline(admin.TabularInline):
+    model = Containing
+    extra = 0
+
+
 @admin.register(HomeWork)
 class HomeWorkAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'teacher']
     list_display_links = ['id', 'teacher']
+    inlines = [ContainingInline,]
 
 @admin.register(SampleHomeWork)
 class SampleHomeWorkAdmin(admin.ModelAdmin):
