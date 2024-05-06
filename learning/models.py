@@ -51,12 +51,20 @@ class HomeWork(models.Model):
     """ Base HomeWork model that contains some Questions """
     title = models.CharField(max_length=50)
     teacher = models.ForeignKey(User, on_delete=models.CASCADE)
-    questions = models.ManyToManyField(Question)
+    questions = models.ManyToManyField(Question, through="Containing")
     date_created = models.DateTimeField(auto_now_add=True)
     is_published = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
+
+
+class Containing(models.Model):
+    """ Through table for M2M between homework and question """
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    homework = models.ForeignKey(HomeWork, on_delete=models.CASCADE)
+    number = models.IntegerField()
+    # score = models.FloatField()
 
 
 class SampleHomeWork(models.Model):
