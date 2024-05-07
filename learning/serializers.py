@@ -30,8 +30,15 @@ class HomeWorkSerializer(serializers.ModelSerializer):
             for field_name in existing - allowed:
                 self.fields.pop(field_name)
 
+    def validate(self, attrs):
+        try:
+            questions = self.initial_data["questions"]
+        except:
+            raise serializers.ValidationError(f"Required field: 'questions'")
+        return attrs
+
     def create(self, validated_data):
-        """ Get question_ids, check teacher of questions and add questions to homework"""
+        """ Get questions id and score, check teacher of questions and add questions to homework"""
         user = self.context["request"].user
         questions = []
         for question_data in self.initial_data['questions']:
