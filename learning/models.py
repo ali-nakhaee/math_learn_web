@@ -64,7 +64,7 @@ class Containing(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     homework = models.ForeignKey(HomeWork, on_delete=models.CASCADE)
     number = models.IntegerField()
-    # score = models.FloatField()
+    score = models.FloatField(default=1)
 
 
 class SampleHomeWork(models.Model):

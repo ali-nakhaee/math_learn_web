@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Question, HomeWork, SampleQuestion, HomeWorkAnswer
+from .models import Question, HomeWork, SampleQuestion, HomeWorkAnswer, Containing
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -33,19 +33,22 @@ class HomeWorkSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """ Get question_ids, check teacher of questions and add questions to homework"""
         user = self.context["request"].user
-        question_ids = []
-        for question_id in self.initial_data['questions']:
+        questions = []
+        for question_data in self.initial_data['questions']:
+            question_id = question_data["id"]
+            score = question_data["score"]
             try:
                 question = Question.objects.get(id=question_id)
                 if question.teacher == user:
-                    if question_id not in question_ids:
-                        question_ids.append(question_id)
+                    questions.append((question_id, score))
             except:
                 continue
 
         homework = HomeWork.objects.create(teacher=user, **validated_data)
-        for question_id in question_ids:
-            homework.questions.add(question_id)
+        for idx, question in enumerate(questions, start=1):
+            question_id = question[0]
+            score = question[1]
+            homework.questions.add(question_id, through_defaults={"number": idx, "score": score})
         return homework
 
 
