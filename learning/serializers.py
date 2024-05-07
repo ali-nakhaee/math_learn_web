@@ -34,7 +34,13 @@ class HomeWorkSerializer(serializers.ModelSerializer):
         try:
             questions = self.initial_data["questions"]
         except:
-            raise serializers.ValidationError(f"Required field: 'questions'")
+            raise serializers.ValidationError("Required field: 'questions'")
+        for question in questions:
+            try:
+                id = question["id"]
+                score = question["score"]
+            except:
+                raise serializers.ValidationError("For each question 'id' and 'score' fields are required.")
         return attrs
 
     def create(self, validated_data):
