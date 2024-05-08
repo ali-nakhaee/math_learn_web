@@ -54,6 +54,7 @@ class HomeWork(models.Model):
     questions = models.ManyToManyField(Question, through="Containing")
     date_created = models.DateTimeField(auto_now_add=True)
     is_published = models.BooleanField(default=False)
+    total_score = models.FloatField()
 
     def __str__(self):
         return self.title

@@ -53,11 +53,12 @@ class HomeWorkSerializer(serializers.ModelSerializer):
             try:
                 question = Question.objects.get(id=question_id)
                 if question.teacher == user:
-                    questions.append((question_id, score))
+                    if question_id not in (x[0] for x in questions):    # to avoid duplicate previous question_ids
+                        questions.append([question_id, score])
             except:
                 continue
 
-        homework = HomeWork.objects.create(teacher=user, **validated_data)
+        homework = HomeWork.objects.create(teacher=user, total_score=0, **validated_data)
         for idx, question in enumerate(questions, start=1):
             question_id = question[0]
             score = question[1]
