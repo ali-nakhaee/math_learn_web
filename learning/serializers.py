@@ -9,17 +9,24 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = ['id', 'text', 'variable', 'variable_min', 'variable_max', 'true_answer']
 
 
+class ContainingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Containing
+        fields = ['number', 'score']
+
+
 class HomeWorkSerializer(serializers.ModelSerializer):
-    questions = serializers.SlugRelatedField(
+    """questions = serializers.SlugRelatedField(
         many=True,
         read_only=True,
         slug_field='text'
-    )
-    # questions = QuestionSerializer(many=True, read_only=True)  # <--- another way to serialize questions
+    )"""
+    questions = QuestionSerializer(many=True, read_only=True)  # <--- another way to serialize questions
+    containing = ContainingSerializer(source='containing_set', many=True, read_only=True)
     
     class Meta:
         model = HomeWork
-        fields = ['title', 'questions', 'id', 'is_published']
+        fields = ['title', 'questions', 'containing', 'id', 'is_published']
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
