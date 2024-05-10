@@ -1,7 +1,7 @@
 from django.dispatch import receiver
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, m2m_changed
 
-from .models import Question, SampleQuestion, QuestionAnswer, HomeWorkAnswer
+from .models import Question, SampleQuestion, QuestionAnswer, HomeWorkAnswer, HomeWork
 from .math_functions import make_sample_question
 
 
@@ -37,3 +37,15 @@ def reevaluate_answers(sender, instance, created, **kwargs):
                 percent = 0
             homework_answer.percent = percent
             homework_answer.save()
+
+
+@receiver(m2m_changed, sender=HomeWork.questions.through)
+def update_homework_total_score(sender, instance, action, **kwargs):
+    if action == 'post_add' or action == 'post_remove':
+        print("update_homework_total_score signal run.")
+        total_score = 0
+        for question in sender.objects.filter(homework=instance):
+            total_score += question.score
+        instance.total_score = total_score
+        print(f"totla_score = {total_score}")
+        instance.save()
