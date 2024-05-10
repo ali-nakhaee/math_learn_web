@@ -86,7 +86,7 @@ class SampleQuestion(models.Model):
 
 class HomeWorkAnswer(models.Model):
     sample_homework = models.ForeignKey(SampleHomeWork, on_delete=models.CASCADE)
-    percent = models.FloatField()
+    score = models.FloatField()
     date_created = models.DateTimeField(auto_now_add=True)
 
 

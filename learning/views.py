@@ -15,7 +15,7 @@ from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 
 from users.models import User
-from .models import Practice, ConstantText, Answer, Help, Question, HomeWork, SampleHomeWork, SampleQuestion, HomeWorkAnswer, QuestionAnswer
+from .models import Practice, ConstantText, Answer, Help, Question, HomeWork, SampleHomeWork, SampleQuestion, HomeWorkAnswer, QuestionAnswer, Containing
 from .serializers import QuestionSerializer, HomeWorkSerializer, SampleQuestionSerializer, HomeWorkAnswerSerializer
 from .math_functions import make_sample_question
 
@@ -113,13 +113,13 @@ class EditHomeWorkAPIView(APIView):
                 answers.append({"student_id": student.id,
                                 "first_name": student.first_name,
                                 "last_name": student.last_name,
-                                "percent": homework_answer.percent,
+                                "score": homework_answer.score,
                                 "try_num": 1})
             else:
                 for i in range(len(answers)):
                     if answers[i]["student_id"] == student.id:
-                        if answers[i]["percent"] < homework_answer.percent:
-                            answers[i]["percent"] = homework_answer.percent
+                        if answers[i]["score"] < homework_answer.score:
+                            answers[i]["score"] = homework_answer.score
                         answers[i]["try_num"] += 1
         data = [{"homework_details": HomeWorkSerializer(base_homework).data}, {"answers": answers}]
         return Response(data, status.HTTP_200_OK)
@@ -225,9 +225,8 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                 return Response({"message": "This sample homework is not yours."}, status.HTTP_403_FORBIDDEN)
             sample_homework_questions = SampleQuestion.objects.filter(homework=sample_homework)
             student_answers = serializer.data.get("questions")
-            homework_answer = HomeWorkAnswer.objects.create(sample_homework=sample_homework, percent=0)
-            true_answers = 0
-            all_questions_num = sample_homework_questions.count()
+            homework_answer = HomeWorkAnswer.objects.create(sample_homework=sample_homework, score=0)
+            score = 0
             checked_questions_numbers = []
             message = {"message": "Your answer is saved."}
             # need to check for n+1 queries
@@ -237,7 +236,9 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                         if int(student_answer["question_num"]) == sample_question.number:
                             if student_answer["answer"] == sample_question.true_answer:
                                 evaluation = True
-                                true_answers += 1
+                                question_score = Containing.objects.get(question=sample_question.base_question,
+                                                                homework=sample_homework.base_homework).score
+                                score += question_score
                             else:
                                 evaluation = False
                             QuestionAnswer.objects.create(sample_question=sample_question,
@@ -256,11 +257,9 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                                               homework_answer=homework_answer,
                                               evaluation=False)
                 message[f"question_num_{question_number}"] = "Blank"
-            if all_questions_num != 0:
-                percent = (true_answers / all_questions_num) * 100
-                homework_answer.percent = percent
-                homework_answer.save()
-                message["Final percent"] = percent
+            homework_answer.score = score
+            homework_answer.save()
+            message["Final score"] = f"{score} / {sample_homework.base_homework.total_score}"
             return Response(message, status.HTTP_201_CREATED)
 
         else:
