@@ -8,11 +8,21 @@ class QuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['id', 'text', 'variable', 'variable_min', 'variable_max', 'true_answer']
 
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
 
 class ContainingSerializer(serializers.ModelSerializer):
+    question = QuestionSerializer(fields=('text', 'id'))
     class Meta:
         model = Containing
-        fields = ['number', 'score']
+        fields = ['question', 'number', 'score']
 
 
 class HomeWorkSerializer(serializers.ModelSerializer):
@@ -21,12 +31,13 @@ class HomeWorkSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field='text'
     )"""
-    questions = QuestionSerializer(many=True, read_only=True)  # <--- another way to serialize questions
-    containing = ContainingSerializer(source='containing_set', many=True, read_only=True)
+    # questions = QuestionSerializer(many=True, read_only=True)  # <--- another way to serialize questions
+    # containing = ContainingSerializer(source='containing_set', many=True, read_only=True)
+    questions = ContainingSerializer(source='containing_set', many=True, read_only=True)
     
     class Meta:
         model = HomeWork
-        fields = ['title', 'questions', 'containing', 'id', 'is_published']
+        fields = ['title', 'questions', 'id', 'is_published']
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
