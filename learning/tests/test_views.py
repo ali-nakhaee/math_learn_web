@@ -25,8 +25,10 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                 variable_max=10,
                                                 true_answer='3 + y')
         base_homework = HomeWork.objects.create(teacher=teacher,
-                                                title='Base HomeWork')
-        base_homework.questions.add(base_question_1, base_question_2)
+                                                title='Base HomeWork',
+                                                total_score=3)
+        base_homework.questions.add(base_question_1, through_defaults={"number": 1, "score": 1})
+        base_homework.questions.add(base_question_2, through_defaults={"number": 2, "score": 2})
         sample_homework = SampleHomeWork.objects.create(student=student,
                                                         base_homework=base_homework)
         sample_question_1 = SampleQuestion.objects.create(base_question=base_question_1,
@@ -105,7 +107,7 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                         content_type="application/json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(QuestionAnswer.objects.all().count(), 2)
-        self.assertEqual(HomeWorkAnswer.objects.get(id=1).percent, 50)
+        self.assertEqual(HomeWorkAnswer.objects.get(id=1).score, 1)
 
     def test_creating_blank_answers(self):
         """ Check creating blank answers """
@@ -120,5 +122,5 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                         content_type="application/json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(QuestionAnswer.objects.all().count(), 2)
-        self.assertEqual(HomeWorkAnswer.objects.get(id=1).percent, 50)
+        self.assertEqual(HomeWorkAnswer.objects.get(id=1).score, 1)
         
