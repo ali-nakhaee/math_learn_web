@@ -37,7 +37,7 @@ class HomeWorkSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = HomeWork
-        fields = ['title', 'questions', 'id', 'is_published']
+        fields = ['title', 'questions', 'id', 'total_score', 'is_published']
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
