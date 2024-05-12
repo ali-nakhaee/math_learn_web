@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_save, m2m_changed
 
-from .models import Question, SampleQuestion, QuestionAnswer, HomeWorkAnswer, HomeWork
+from .models import Question, SampleQuestion, QuestionAnswer, HomeWorkAnswer, HomeWork, Containing
 from .math_functions import make_sample_question
 
 
@@ -17,6 +17,7 @@ def change_sample_questions(sender, instance, created, **kwargs):
             sample_question.true_answer = new_sample_question["answer"]
             sample_question.save()
             # need to send email to student for this change
+        print('change_sample_questions signal run.')
 
 
 @receiver(post_save, sender=SampleQuestion)
@@ -28,15 +29,18 @@ def reevaluate_answers(sender, instance, created, **kwargs):
         question_answers.update(answer=None, evaluation=False)
         homework_answers = HomeWorkAnswer.objects.filter(questions__in=question_answers)
         for homework_answer in homework_answers:
-            sample_homework = homework_answer.sample_homework
-            all_questions_num = SampleQuestion.objects.filter(homework=sample_homework).count()
-            true_answers_num = QuestionAnswer.objects.filter(homework_answer=homework_answer, evaluation=True).count()
-            if all_questions_num != 0:
-                percent = (true_answers_num / all_questions_num) * 100
-            else:
-                percent = 0
-            homework_answer.percent = percent
+            new_score = 0
+            # need better method with less queries
+            for question_answer in homework_answer.questions.all():
+                if question_answer.evaluation == True:
+                    base_homework = homework_answer.sample_homework.base_homework
+                    base_question = question_answer.sample_question.base_question
+                    question_score = Containing.objects.get(question=base_question,
+                                                            homework=base_homework).score
+                    new_score += question_score
+            homework_answer.score = new_score
             homework_answer.save()
+        print('reevaluate_answers signal run.')
 
 
 @receiver(m2m_changed, sender=HomeWork.questions.through)
