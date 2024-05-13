@@ -81,7 +81,6 @@ class SampleQuestion(models.Model):
     text = models.TextField()
     true_answer = models.FloatField()
     homework = models.ForeignKey(SampleHomeWork, on_delete=models.CASCADE, related_name="questions")
-    number = models.IntegerField()
 
 
 class HomeWorkAnswer(models.Model):

@@ -155,13 +155,12 @@ class GetHomeWorkAPIView(APIView):
                                                             base_homework=base_homework).last()
         else:
             sample_homework = SampleHomeWork.objects.create(student=request.user, base_homework=base_homework)
-            for idx, base_question in enumerate(base_homework.questions.all(), start=1):
+            for base_question in base_homework.questions.all():
                 sample_question = make_sample_question(base_question.id)
                 SampleQuestion.objects.create(base_question=base_question,
                                             text=sample_question["text"],
                                             true_answer=sample_question["answer"],
-                                            homework=sample_homework,
-                                            number=idx)
+                                            homework=sample_homework)
                 
         sample_questions = SampleQuestion.objects.filter(homework=sample_homework)
         student_name = str(request.user.first_name) + " " + str(request.user.last_name)
@@ -233,7 +232,9 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
             for student_answer in student_answers:
                 if int(student_answer["question_num"]) not in checked_questions_numbers:    # to avoid recheck duplicate answer
                     for sample_question in sample_homework_questions:
-                        if int(student_answer["question_num"]) == sample_question.number:
+                        question_number = Containing.objects.get(question=sample_question.base_question,
+                                                                 homework=sample_homework.base_homework).number
+                        if int(student_answer["question_num"]) == question_number:
                             if student_answer["answer"] == sample_question.true_answer:
                                 evaluation = True
                                 question_score = Containing.objects.get(question=sample_question.base_question,
@@ -247,16 +248,19 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                                                         evaluation=evaluation)
                             checked_questions_numbers.append(int(student_answer["question_num"]))
                             message[f"question_num_{int(student_answer["question_num"])}"] = evaluation
-            sample_homework_question_numbers = list(sample_homework_questions.values_list("number", flat=True))
+            homework_question_numbers = list(Containing.objects.filter(homework=sample_homework.base_homework).values_list("number", flat=True))
 
             # To create blank answers
-            for question_number in set(sample_homework_question_numbers) - set(checked_questions_numbers):
-                sample_question = sample_homework_questions.filter(number=question_number).last()
+            for question_num in set(homework_question_numbers) - set(checked_questions_numbers):
+                containing = Containing.objects.get(homework=sample_homework.base_homework,
+                                                    number=question_num)
+                sample_question = SampleQuestion.objects.get(base_question=containing.question,
+                                                            homework=sample_homework)
                 QuestionAnswer.objects.create(sample_question=sample_question,
                                               answer=None,
                                               homework_answer=homework_answer,
                                               evaluation=False)
-                message[f"question_num_{question_number}"] = "Blank"
+                message[f"question_num_{question_num}"] = "Blank"
             homework_answer.score = score
             homework_answer.save()
             message["Final score"] = f"{score} / {sample_homework.base_homework.total_score}"
