@@ -1,6 +1,7 @@
 """ learning.views file """
 import time
 import pdfkit
+from datetime import datetime, timezone
 
 from django.utils.crypto import get_random_string
 from django.template.loader import get_template
@@ -130,7 +131,10 @@ class HomeWorksListAPIView(APIView):
 
     def get(self, request: Request):
         """ Return a list of published homeworks for the student. """
-        homeworks = HomeWork.objects.filter(teacher__students=request.user, is_published=True)
+        homeworks = HomeWork.objects.filter(teacher__students=request.user,
+                                            is_published=True,
+                                            publish_date_start__lte=datetime.now(timezone.utc),
+                                            publish_date_end__gte=datetime.now(timezone.utc))
         serializer = HomeWorkSerializer(homeworks, fields=('title', 'id'), many=True)
         return Response(serializer.data, status.HTTP_200_OK)
 
