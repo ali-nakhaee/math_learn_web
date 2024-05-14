@@ -26,13 +26,12 @@ class ContainingSerializer(serializers.ModelSerializer):
 
 
 class HomeWorkSerializer(serializers.ModelSerializer):
-    """questions = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='text'
-    )"""
+    # questions = serializers.SlugRelatedField(
+    #     many=True,
+    #     read_only=True,
+    #     slug_field='text'
+    # )
     # questions = QuestionSerializer(many=True, read_only=True)  # <--- another way to serialize questions
-    # containing = ContainingSerializer(source='containing_set', many=True, read_only=True)
     questions = ContainingSerializer(source='containing_set', many=True, read_only=True)
     
     class Meta:
