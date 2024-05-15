@@ -91,6 +91,7 @@ class HomeWorkAnswer(models.Model):
     sample_homework = models.ForeignKey(SampleHomeWork, on_delete=models.CASCADE)
     score = models.FloatField()
     date_created = models.DateTimeField(auto_now_add=True)
+    with_delay = models.BooleanField(default=False)
 
 
 class QuestionAnswer(models.Model):
