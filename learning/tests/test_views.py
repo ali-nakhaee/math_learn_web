@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -26,7 +27,9 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                 true_answer='3 + y')
         base_homework = HomeWork.objects.create(teacher=teacher,
                                                 title='Base HomeWork',
-                                                total_score=3)
+                                                total_score=3,
+                                                publish_date_start=datetime.now(timezone.utc),
+                                                publish_date_end=datetime.now(timezone.utc))
         base_homework.questions.add(base_question_1, through_defaults={"number": 1, "score": 1})
         base_homework.questions.add(base_question_2, through_defaults={"number": 2, "score": 2})
         sample_homework = SampleHomeWork.objects.create(student=student,
@@ -34,13 +37,11 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
         sample_question_1 = SampleQuestion.objects.create(base_question=base_question_1,
                                                           text="2+2=",
                                                           true_answer=4,
-                                                          homework=sample_homework,
-                                                          number=1)
+                                                          homework=sample_homework)
         sample_question_2 = SampleQuestion.objects.create(base_question=base_question_2,
                                                           text="3+3=",
                                                           true_answer=6,
-                                                          homework=sample_homework,
-                                                          number=2)
+                                                          homework=sample_homework)
         teacher_token = Token.objects.create(user=teacher)
         teacher_token.save()
         student_token = Token.objects.create(user=student)
