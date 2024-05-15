@@ -55,8 +55,8 @@ class HomeWork(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     is_published = models.BooleanField(default=False)
     total_score = models.FloatField()
-    publish_date_start = models.DateTimeField(null=True)
-    publish_date_end = models.DateTimeField(null=True)
+    publish_date_start = models.DateTimeField()
+    publish_date_end = models.DateTimeField()
     with_delay = models.BooleanField(default=True)
     delay_score = models.FloatField(default=0.8)
 

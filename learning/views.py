@@ -226,6 +226,9 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                 return Response({"message": "Sample HomeWork does not exist"}, status.HTTP_404_NOT_FOUND)
             if sample_homework.student != request.user:
                 return Response({"message": "This sample homework is not yours."}, status.HTTP_403_FORBIDDEN)
+            if (datetime.now(timezone.utc) > sample_homework.base_homework.publish_date_end and
+                sample_homework.base_homework.with_delay == False):
+                return Response({"message": "Delay! The answer is not accepted."}, status.HTTP_403_FORBIDDEN)
             sample_homework_questions = SampleQuestion.objects.filter(homework=sample_homework)
             student_answers = serializer.data.get("questions")
             homework_answer = HomeWorkAnswer.objects.create(sample_homework=sample_homework, score=0)
@@ -265,9 +268,15 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                                               homework_answer=homework_answer,
                                               evaluation=False)
                 message[f"question_num_{question_num}"] = "Blank"
+            if datetime.now(timezone.utc) > sample_homework.base_homework.publish_date_end:
+                homework_answer.with_delay = True
+                message["Final score"] = (f"({score} * {sample_homework.base_homework.delay_score} = "
+                    f"{round(score * sample_homework.base_homework.delay_score, 2)}) / {sample_homework.base_homework.total_score}")
+            else:
+                homework_answer.with_delay = False
+                message["Final score"] = f"{score} / {sample_homework.base_homework.total_score}"
             homework_answer.score = score
             homework_answer.save()
-            message["Final score"] = f"{score} / {sample_homework.base_homework.total_score}"
             return Response(message, status.HTTP_201_CREATED)
 
         else:
