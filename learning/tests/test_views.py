@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -28,8 +28,8 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
         base_homework = HomeWork.objects.create(teacher=teacher,
                                                 title='Base HomeWork',
                                                 total_score=3,
-                                                publish_date_start=datetime.now(timezone.utc),
-                                                publish_date_end=datetime.now(timezone.utc))
+                                                publish_date_start=datetime.now(timezone.utc) - timedelta(days=5),
+                                                publish_date_end=datetime.now(timezone.utc) - timedelta(days=2))
         base_homework.questions.add(base_question_1, through_defaults={"number": 1, "score": 1})
         base_homework.questions.add(base_question_2, through_defaults={"number": 2, "score": 2})
         sample_homework = SampleHomeWork.objects.create(student=student,
@@ -109,6 +109,7 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(QuestionAnswer.objects.all().count(), 2)
         self.assertEqual(HomeWorkAnswer.objects.get(id=1).score, 1)
+        self.assertEqual(HomeWorkAnswer.objects.get(id=1).with_delay, True)
 
     def test_creating_blank_answers(self):
         """ Check creating blank answers """
