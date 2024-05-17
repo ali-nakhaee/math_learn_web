@@ -103,12 +103,12 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                                 {"question_num": 1,
                                                                     "answer": 4},
                                                                 {"question_num": 2,
-                                                                    "answer": 18}],
+                                                                    "answer": 6}],
                                                         "sample_homework_id": 1}),
                                                         content_type="application/json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(QuestionAnswer.objects.all().count(), 2)
-        self.assertEqual(HomeWorkAnswer.objects.get(id=1).score, 1)
+        self.assertEqual(HomeWorkAnswer.objects.get(id=1).score, 3)
         self.assertEqual(HomeWorkAnswer.objects.get(id=1).with_delay, True)
 
     def test_creating_blank_answers(self):

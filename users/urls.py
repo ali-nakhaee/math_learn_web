@@ -10,4 +10,5 @@ urlpatterns = [
     path('login/', obtain_auth_token, name='login'),
     path('logout/', views.LogoutAPIView.as_view(), name='logout'),
     path('register/', views.RegisterAPIView.as_view(), name='register'),
+    path('login_page/', views.LoginPage.as_view(), name='login_page'),
 ]

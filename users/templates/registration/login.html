@@ -1,0 +1,49 @@
+{% extends "learning/base.html" %}
+
+{% block page_header %}
+<div class="mx-auto text-center">
+  <h2>ورود به حساب کاربری</h2>
+</div>
+{% endblock page_header %}
+
+{% block content %}
+
+{% if messages %}
+<ul class="messages">
+  {% for message in messages %}
+  <div class="container-fluid p-0">
+    <div class="alert {{ message.tags }} alert-dismissible" role="alert" >
+      <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">
+        <span aria-hidden="True">&times;</span>
+      </button>
+      {{ message }}
+    </div>
+  </div>
+  {% endfor %}
+</ul>
+{% endif %}
+
+
+  <form method="post" action="{% url 'users:login' %}" class="row g-3">
+    {% csrf_token %}
+    <div class="col-md-4 mx-auto">
+      <label class="form-label" for="id_username">{{ form.username.label }}</label>
+      <input type="text" name="username" maxlength="150" autocapitalize="none"
+      autocomplete="username" autofocus="" class="form-control" placeholder=""
+      title="{{ form.username.help_text }}" required="" id="id_username">
+    </div>
+    <div class="col-md-4 mx-auto">
+      <label class="form-label" for="id_password">{{ form.password.label }}</label>
+      <input type="password" name="password" autocomplete="password" class="form-control"
+      placeholder="" title={{ form.password1.help_text }} required="" id="id_password">
+      <small class="form-text text-muted">{{ form.password.help_text|linebreaks }}</small>
+    </div>
+    <div class="mx-auto text-center">
+         <button name="submit" class="btn btn-primary col-md-2 mx-auto">ورود</button>
+    </div>
+    
+    <input type="hidden" name="next"
+      value="{% url 'learning:index' %}">
+  </form>
+
+{% endblock content %}
