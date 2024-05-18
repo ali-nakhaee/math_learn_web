@@ -24,7 +24,7 @@
 {% endif %}
 
 
-  <form method="post" action="{% url 'users:login' %}" class="row g-3">
+  <form method="post" action="{% url 'users:login_page' %}" class="row g-3">
     {% csrf_token %}
     <div class="col-md-4 mx-auto">
       <label class="form-label" for="id_username">{{ form.username.label }}</label>

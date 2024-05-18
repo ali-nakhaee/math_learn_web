@@ -22,4 +22,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("learning.urls")),
     path("users/", include("users.urls")),
+    path("__debug__/", include("debug_toolbar.urls")),
 ]
