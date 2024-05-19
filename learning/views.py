@@ -1,5 +1,5 @@
 """ learning.views file """
-import time
+
 import pdfkit
 from datetime import datetime, timezone
 
@@ -8,6 +8,7 @@ from django.template.loader import get_template
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse
+from django.db.models import Prefetch
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -77,11 +78,10 @@ class HomeWorksAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request: Request):
-        start = time.time() * 1000
-        homeworks = HomeWork.objects.filter(teacher=request.user).order_by('-date_created').prefetch_related('questions')
+        homeworks = HomeWork.objects.filter(teacher=request.user).order_by('-date_created').prefetch_related(
+                            Prefetch('containing_set', queryset=Containing.objects.select_related('question')))
         serializer = HomeWorkSerializer(homeworks, many=True)
         data = serializer.data
-        print("duration:", time.time() * 1000 - start)
         return Response(data, status.HTTP_200_OK)
     
     def post(self, request: Request):
@@ -95,6 +95,7 @@ class HomeWorksAPIView(APIView):
 class EditHomeWorkAPIView(APIView):
     # get, put, delete
     permission_classes = (IsAuthenticated,)
+    
     def get(self, request: Request, base_homework_id):
         """ Return the base_homework detail and the list of answers to specific base_homework for teacher. """
         try:
@@ -104,7 +105,7 @@ class EditHomeWorkAPIView(APIView):
         if base_homework.teacher != request.user:
             return Response({"message": "This homework is not yours."})
         sample_homeworks = SampleHomeWork.objects.filter(base_homework=base_homework)
-        homework_answers = HomeWorkAnswer.objects.filter(sample_homework__in=sample_homeworks).select_related('sample_homework')
+        homework_answers = HomeWorkAnswer.objects.filter(sample_homework__in=sample_homeworks).prefetch_related('sample_homework')
         student_list = []
         answers = []
         for homework_answer in homework_answers:
