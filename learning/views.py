@@ -99,13 +99,13 @@ class EditHomeWorkAPIView(APIView):
     def get(self, request: Request, base_homework_id):
         """ Return the base_homework detail and the list of answers to specific base_homework for teacher. """
         try:
-            base_homework = HomeWork.objects.get(id=base_homework_id)
+            base_homework = HomeWork.objects.prefetch_related('containing_set__question').get(id=base_homework_id)
         except HomeWork.DoesNotExist:
             return Response({"message": "This homework does not exist."}, status.HTTP_404_NOT_FOUND)
         if base_homework.teacher != request.user:
             return Response({"message": "This homework is not yours."})
         sample_homeworks = SampleHomeWork.objects.filter(base_homework=base_homework)
-        homework_answers = HomeWorkAnswer.objects.filter(sample_homework__in=sample_homeworks).prefetch_related('sample_homework')
+        homework_answers = HomeWorkAnswer.objects.filter(sample_homework__in=sample_homeworks).prefetch_related('sample_homework__student')
         student_list = []
         answers = []
         for homework_answer in homework_answers:
