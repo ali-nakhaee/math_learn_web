@@ -89,9 +89,16 @@ class SampleQuestion(models.Model):
 
 class HomeWorkAnswer(models.Model):
     sample_homework = models.ForeignKey(SampleHomeWork, on_delete=models.CASCADE)
-    score = models.FloatField()
+    raw_score = models.FloatField()
     date_created = models.DateTimeField(auto_now_add=True)
     with_delay = models.BooleanField(default=False)
+
+    @property
+    def score(self):
+        if self.with_delay:
+            return self.raw_score * self.sample_homework.base_homework.delay_score
+        else:
+            return self.raw_score
 
 
 class QuestionAnswer(models.Model):

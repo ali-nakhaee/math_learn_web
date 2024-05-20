@@ -50,7 +50,7 @@ class SampleQuestionAdmin(admin.ModelAdmin):
 
 @admin.register(HomeWorkAnswer)
 class HomeWorkAnswerAdmin(admin.ModelAdmin):
-    list_display = ['id', 'sample_homework', 'score', 'date_created']
+    list_display = ['id', 'sample_homework', 'raw_score', 'date_created']
     list_display_links = ['id', 'sample_homework']
 
 @admin.register(QuestionAnswer)

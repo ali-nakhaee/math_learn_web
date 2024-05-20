@@ -105,7 +105,8 @@ class EditHomeWorkAPIView(APIView):
         if base_homework.teacher != request.user:
             return Response({"message": "This homework is not yours."})
         sample_homeworks = SampleHomeWork.objects.filter(base_homework=base_homework)
-        homework_answers = HomeWorkAnswer.objects.filter(sample_homework__in=sample_homeworks).prefetch_related('sample_homework__student')
+        homework_answers = HomeWorkAnswer.objects.filter(sample_homework__in=sample_homeworks).select_related('sample_homework__student',
+                                                                                                                'sample_homework__base_homework')
         student_list = []
         answers = []
         for homework_answer in homework_answers:
@@ -232,7 +233,7 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                 return Response({"message": "Delay! The answer is not accepted."}, status.HTTP_403_FORBIDDEN)
             sample_homework_questions = SampleQuestion.objects.filter(homework=sample_homework)
             student_answers = serializer.data.get("questions")
-            homework_answer = HomeWorkAnswer.objects.create(sample_homework=sample_homework, score=0)
+            homework_answer = HomeWorkAnswer.objects.create(sample_homework=sample_homework, raw_score=0)
             score = 0
             checked_questions_numbers = []
             message = {"message": "Your answer is saved."}
@@ -276,7 +277,7 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
             else:
                 homework_answer.with_delay = False
                 message["Final score"] = f"{score} / {sample_homework.base_homework.total_score}"
-            homework_answer.score = score
+            homework_answer.raw_score = score
             homework_answer.save()
             return Response(message, status.HTTP_201_CREATED)
 
