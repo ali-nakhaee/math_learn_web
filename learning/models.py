@@ -105,7 +105,7 @@ class HomeWorkAnswer(models.Model):
     @property
     def score(self):
         if self.with_delay:
-            return self.raw_score * self.sample_homework.base_homework.delay_score
+            return round(self.raw_score * self.sample_homework.base_homework.delay_score, 2)
         else:
             return self.raw_score
 

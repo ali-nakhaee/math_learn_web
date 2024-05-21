@@ -108,8 +108,9 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                         content_type="application/json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(QuestionAnswer.objects.all().count(), 2)
-        self.assertEqual(HomeWorkAnswer.objects.get(id=1).score, 3)
+        self.assertEqual(HomeWorkAnswer.objects.get(id=1).raw_score, 3)
         self.assertEqual(HomeWorkAnswer.objects.get(id=1).with_delay, True)
+        self.assertEqual(HomeWorkAnswer.objects.get(id=1).score, 2.4)
 
     def test_creating_blank_answers(self):
         """ Check creating blank answers """
@@ -124,5 +125,5 @@ class HomeWorkAnswerEvaluationViewTest(TestCase):
                                                         content_type="application/json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(QuestionAnswer.objects.all().count(), 2)
-        self.assertEqual(HomeWorkAnswer.objects.get(id=1).score, 1)
+        self.assertEqual(HomeWorkAnswer.objects.get(id=1).raw_score, 1)
         

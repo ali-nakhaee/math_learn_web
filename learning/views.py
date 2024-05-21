@@ -238,13 +238,12 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                 sample_homework.base_homework.with_delay == False):
                 return Response({"message": "Delay! The answer is not accepted."}, status.HTTP_403_FORBIDDEN)
             
-            sample_homework_questions = sample_homework.questions.all()
             student_answers = serializer.data.get("questions")
             homework_answer = HomeWorkAnswer.objects.create(sample_homework=sample_homework, raw_score=0)
             score = 0
             message = {"message": "Your answer is saved."}
-            # need to check for n+1 queries
-            for sample_question in sample_homework_questions:
+            # need to reduce number of .create() queries.
+            for sample_question in sample_homework.questions.all():
                 for student_answer in student_answers:
                     if sample_question.number == student_answer["question_num"]:
                         if sample_question.true_answer == student_answer["answer"]:
@@ -275,7 +274,7 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                 homework_answer.with_delay = False
             homework_answer.raw_score = score
             homework_answer.save()
-            message["Final score"] = f"{round(homework_answer.score, 2)} / {sample_homework.base_homework.total_score}"
+            message["Final score"] = f"{homework_answer.score} / {sample_homework.base_homework.total_score}"
             return Response(message, status.HTTP_201_CREATED)
 
         else:
