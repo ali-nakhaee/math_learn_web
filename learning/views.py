@@ -218,12 +218,21 @@ class AddTeacherAPIView(APIView):
 
 class HomeWorkAnswerEvaluationAPIView(APIView):
     permission_classes = (IsAuthenticated,)
+
     def post(self, request: Request):
         serializer = HomeWorkAnswerSerializer(data=request.data)
         if serializer.is_valid():
             sample_homework_id = serializer.data.get("sample_homework_id")
             try:
-                sample_homework = SampleHomeWork.objects.get(id=sample_homework_id)
+                sample_homework = SampleHomeWork.objects.select_related(
+                        'base_homework',
+                        'student',
+                    ).prefetch_related(
+                        'base_homework__containing_set',
+                        'questions',
+                        'questions__base_question',
+                        'questions__base_question__containing_set',
+                    ).get(id=sample_homework_id)
             except SampleHomeWork.DoesNotExist:
                 return Response({"message": "Sample HomeWork does not exist"}, status.HTTP_404_NOT_FOUND)
             if sample_homework.student != request.user:
@@ -231,7 +240,11 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
             if (datetime.now(timezone.utc) > sample_homework.base_homework.publish_date_end and
                 sample_homework.base_homework.with_delay == False):
                 return Response({"message": "Delay! The answer is not accepted."}, status.HTTP_403_FORBIDDEN)
-            sample_homework_questions = SampleQuestion.objects.filter(homework=sample_homework)
+            
+            sample_homework_questions = sample_homework.questions.all().select_related(
+                'base_question',
+                'homework__base_homework',
+            )
             student_answers = serializer.data.get("questions")
             homework_answer = HomeWorkAnswer.objects.create(sample_homework=sample_homework, raw_score=0)
             score = 0
@@ -241,8 +254,7 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
             for student_answer in student_answers:
                 if int(student_answer["question_num"]) not in checked_questions_numbers:    # to avoid recheck duplicate answer
                     for sample_question in sample_homework_questions:
-                        question_number = Containing.objects.get(question=sample_question.base_question,
-                                                                 homework=sample_homework.base_homework).number
+                        question_number = sample_question.number
                         if int(student_answer["question_num"]) == question_number:
                             if student_answer["answer"] == sample_question.true_answer:
                                 evaluation = True
@@ -257,8 +269,8 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                                                         evaluation=evaluation)
                             checked_questions_numbers.append(int(student_answer["question_num"]))
                             message[f"question_num_{int(student_answer["question_num"])}"] = evaluation
-            homework_question_numbers = list(Containing.objects.filter(homework=sample_homework.base_homework).values_list("number", flat=True))
 
+            homework_question_numbers = list(Containing.objects.filter(homework=sample_homework.base_homework).values_list("number", flat=True))
             # To create blank answers
             for question_num in set(homework_question_numbers) - set(checked_questions_numbers):
                 containing = Containing.objects.get(homework=sample_homework.base_homework,
@@ -272,13 +284,11 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                 message[f"question_num_{question_num}"] = "Blank"
             if datetime.now(timezone.utc) > sample_homework.base_homework.publish_date_end:
                 homework_answer.with_delay = True
-                message["Final score"] = (f"({score} * {sample_homework.base_homework.delay_score} = "
-                    f"{round(score * sample_homework.base_homework.delay_score, 2)}) / {sample_homework.base_homework.total_score}")
             else:
                 homework_answer.with_delay = False
-                message["Final score"] = f"{score} / {sample_homework.base_homework.total_score}"
             homework_answer.raw_score = score
             homework_answer.save()
+            message["Final score"] = f"{homework_answer.score} / {sample_homework.base_homework.total_score}"
             return Response(message, status.HTTP_201_CREATED)
 
         else:

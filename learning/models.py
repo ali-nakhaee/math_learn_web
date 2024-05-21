@@ -85,6 +85,13 @@ class SampleQuestion(models.Model):
     text = models.TextField()
     true_answer = models.FloatField()
     homework = models.ForeignKey(SampleHomeWork, on_delete=models.CASCADE, related_name="questions")
+    number = models.IntegerField()
+    score = models.FloatField()
+
+    @property
+    def number(self):
+        return Containing.objects.get(question=self.base_question, homework=self.homework.base_homework).number
+    
 
 
 class HomeWorkAnswer(models.Model):
