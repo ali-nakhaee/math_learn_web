@@ -88,10 +88,12 @@ class SampleQuestion(models.Model):
     number = models.IntegerField()
     score = models.FloatField()
 
-    @property
-    def number(self):
-        return Containing.objects.get(question=self.base_question, homework=self.homework.base_homework).number
-    
+    def save(self, *args, **kwargs):
+        containing = Containing.objects.get(homework=self.homework.base_homework, question=self.base_question)
+        self.number = containing.number
+        self.score = containing.score
+        super(SampleQuestion, self).save(*args, **kwargs)
+
 
 
 class HomeWorkAnswer(models.Model):

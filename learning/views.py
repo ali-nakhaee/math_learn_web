@@ -228,10 +228,7 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                         'base_homework',
                         'student',
                     ).prefetch_related(
-                        'base_homework__containing_set',
                         'questions',
-                        'questions__base_question',
-                        'questions__base_question__containing_set',
                     ).get(id=sample_homework_id)
             except SampleHomeWork.DoesNotExist:
                 return Response({"message": "Sample HomeWork does not exist"}, status.HTTP_404_NOT_FOUND)
@@ -241,54 +238,44 @@ class HomeWorkAnswerEvaluationAPIView(APIView):
                 sample_homework.base_homework.with_delay == False):
                 return Response({"message": "Delay! The answer is not accepted."}, status.HTTP_403_FORBIDDEN)
             
-            sample_homework_questions = sample_homework.questions.all().select_related(
-                'base_question',
-                'homework__base_homework',
-            )
+            sample_homework_questions = sample_homework.questions.all()
             student_answers = serializer.data.get("questions")
             homework_answer = HomeWorkAnswer.objects.create(sample_homework=sample_homework, raw_score=0)
             score = 0
-            checked_questions_numbers = []
             message = {"message": "Your answer is saved."}
             # need to check for n+1 queries
-            for student_answer in student_answers:
-                if int(student_answer["question_num"]) not in checked_questions_numbers:    # to avoid recheck duplicate answer
-                    for sample_question in sample_homework_questions:
-                        question_number = sample_question.number
-                        if int(student_answer["question_num"]) == question_number:
-                            if student_answer["answer"] == sample_question.true_answer:
-                                evaluation = True
-                                question_score = Containing.objects.get(question=sample_question.base_question,
-                                                                homework=sample_homework.base_homework).score
-                                score += question_score
-                            else:
-                                evaluation = False
-                            QuestionAnswer.objects.create(sample_question=sample_question,
-                                                        answer=student_answer["answer"],
-                                                        homework_answer=homework_answer,
-                                                        evaluation=evaluation)
-                            checked_questions_numbers.append(int(student_answer["question_num"]))
-                            message[f"question_num_{int(student_answer["question_num"])}"] = evaluation
-
-            homework_question_numbers = list(Containing.objects.filter(homework=sample_homework.base_homework).values_list("number", flat=True))
-            # To create blank answers
-            for question_num in set(homework_question_numbers) - set(checked_questions_numbers):
-                containing = Containing.objects.get(homework=sample_homework.base_homework,
-                                                    number=question_num)
-                sample_question = SampleQuestion.objects.get(base_question=containing.question,
-                                                            homework=sample_homework)
+            for sample_question in sample_homework_questions:
+                for student_answer in student_answers:
+                    if sample_question.number == student_answer["question_num"]:
+                        if sample_question.true_answer == student_answer["answer"]:
+                            evaluation = True
+                        else:
+                            evaluation = False
+                        answer = student_answer["answer"]
+                        break
+                    else:
+                        evaluation = False
+                        answer = None
                 QuestionAnswer.objects.create(sample_question=sample_question,
-                                              answer=None,
+                                              answer=answer,
                                               homework_answer=homework_answer,
-                                              evaluation=False)
-                message[f"question_num_{question_num}"] = "Blank"
+                                              evaluation=evaluation)
+                if evaluation == True:
+                    score += sample_question.score
+                    message[f"question_num_{sample_question.number}"] = evaluation
+                elif answer is not None:
+                    message[f"question_num_{sample_question.number}"] = evaluation
+                else:
+                    message[f"question_num_{sample_question.number}"] = "Blank"
+            
+
             if datetime.now(timezone.utc) > sample_homework.base_homework.publish_date_end:
                 homework_answer.with_delay = True
             else:
                 homework_answer.with_delay = False
             homework_answer.raw_score = score
             homework_answer.save()
-            message["Final score"] = f"{homework_answer.score} / {sample_homework.base_homework.total_score}"
+            message["Final score"] = f"{round(homework_answer.score, 2)} / {sample_homework.base_homework.total_score}"
             return Response(message, status.HTTP_201_CREATED)
 
         else:
