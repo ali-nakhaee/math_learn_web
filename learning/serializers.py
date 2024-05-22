@@ -36,7 +36,8 @@ class HomeWorkSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = HomeWork
-        fields = ['title', 'questions', 'id', 'total_score', 'is_published']
+        fields = ['title', 'questions', 'id', 'total_score', 'is_published', 'publish_date_start', 'publish_date_end']
+        extra_kwargs = {"total_score": {"required": False}}
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -61,25 +62,34 @@ class HomeWorkSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        """ Get questions id and score, check teacher of questions and add questions to homework"""
+        """ Get questions id and score, check teacher of questions and add questions to homework based on received order."""
         user = self.context["request"].user
-        questions = []
-        for question_data in self.initial_data['questions']:
-            question_id = question_data["id"]
-            score = question_data["score"]
-            try:
-                question = Question.objects.get(id=question_id)
-                if question.teacher == user:
-                    if question_id not in (x[0] for x in questions):    # to avoid duplicate previous question_ids
-                        questions.append([question_id, score])
-            except:
-                continue
-
         homework = HomeWork.objects.create(teacher=user, total_score=0, **validated_data)
-        for idx, question in enumerate(questions, start=1):
-            question_id = question[0]
-            score = question[1]
-            homework.questions.add(question_id, through_defaults={"number": idx, "score": score})
+        containing_objects = []
+        total_score = 0
+        selected_questions = Question.objects.filter(
+            id__in=(question["id"] for question in self.initial_data['questions']),
+            teacher=user,
+            ).select_related('teacher')
+        # to sort questions based on received order
+        sorted_selected_questions = sorted(selected_questions,
+                            key=lambda obj: list(question['id'] for question in self.initial_data['questions']).index(obj.id))
+        
+        for idx, selected_question in enumerate(sorted_selected_questions, start=1):
+            for question in self.initial_data['questions']:
+                if question['id'] == selected_question.id:
+                    score = question['score']
+                    break
+            containing_objects.append(Containing(
+                question=selected_question,
+                homework=homework,
+                number=idx,
+                score=score
+            ))
+            total_score += score
+        Containing.objects.bulk_create(containing_objects)
+        homework.total_score = total_score
+        homework.save()
         return homework
 
 
