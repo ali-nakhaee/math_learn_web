@@ -70,7 +70,7 @@ class HomeWorkSerializer(serializers.ModelSerializer):
         selected_questions = Question.objects.filter(
             id__in=(question["id"] for question in self.initial_data['questions']),
             teacher=user,
-            ).select_related('teacher')
+            )
         # to sort questions based on received order
         sorted_selected_questions = sorted(selected_questions,
                             key=lambda obj: list(question['id'] for question in self.initial_data['questions']).index(obj.id))

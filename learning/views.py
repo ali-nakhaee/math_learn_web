@@ -20,8 +20,9 @@ from users.models import User
 from .models import Practice, ConstantText, Answer, Help, Question, HomeWork, SampleHomeWork, SampleQuestion, HomeWorkAnswer, QuestionAnswer, Containing
 from .serializers import QuestionSerializer, HomeWorkSerializer, SampleQuestionSerializer, HomeWorkAnswerSerializer
 from .math_functions import make_sample_question
+from .permissions import TeacherhoodPermission
 
-
+#region Template Views
 class IndexPage(View):
     def get(self, request):
         return render(request, "learning/index.html")
@@ -51,9 +52,10 @@ class AddPractice(View):
                 
         return HttpResponse(practice)
 
+#endregion
 
 class QuestionsAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, TeacherhoodPermission)
 
     def get(self, request: Request):
         questions = Question.objects.filter(teacher=request.user).order_by('-date_created')
@@ -75,7 +77,7 @@ class EditQuestionAPIView(APIView):
 
 class HomeWorksAPIView(APIView):
     """ Get homeworks list and Post to create a new homework for teacher"""
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, TeacherhoodPermission)
 
     def get(self, request: Request):
         homeworks = HomeWork.objects.filter(teacher=request.user).order_by('-date_created').prefetch_related(
@@ -94,7 +96,7 @@ class HomeWorksAPIView(APIView):
 
 class EditHomeWorkAPIView(APIView):
     # get, put, delete
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, TeacherhoodPermission)
     
     def get(self, request: Request, base_homework_id):
         """ Return the base_homework detail and the list of answers to specific base_homework for teacher. """
@@ -186,17 +188,15 @@ class GetHomeWorkAPIView(APIView):
     
 
 class GetTeacherKeyAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, TeacherhoodPermission)
     def post(self, request: Request):
-        if request.user.role == 'TEACHER':
-            if request.user.key:
-                key = request.user.key
-            else:
-                key = get_random_string(length=8)
-                request.user.key = key
-                request.user.save()
-            return Response({"key": key}, status.HTTP_200_OK)
-        return Response({"message": "You should be teacher to get key."}, status.HTTP_403_FORBIDDEN)
+        if request.user.key:
+            key = request.user.key
+        else:
+            key = get_random_string(length=8)
+            request.user.key = key
+            request.user.save()
+        return Response({"key": key}, status.HTTP_200_OK)
     
 
 class AddTeacherAPIView(APIView):
