@@ -7,7 +7,7 @@ from django.utils.crypto import get_random_string
 from django.template.loader import get_template
 from django.shortcuts import render
 from django.views import View
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.db.models import Prefetch
 
 from rest_framework import status
@@ -76,7 +76,7 @@ class EditQuestionAPIView(APIView):
 
 
 class HomeWorksAPIView(APIView):
-    """ Get homeworks list and Post to create a new homework for teacher"""
+    """ Get homeworks list and Post to create a new homework for teacher """
     permission_classes = (IsAuthenticated, TeacherhoodPermission)
 
     def get(self, request: Request):
@@ -97,13 +97,22 @@ class HomeWorksAPIView(APIView):
 class EditHomeWorkAPIView(APIView):
     # get, put, delete
     permission_classes = (IsAuthenticated, TeacherhoodPermission)
-    
+
+    def get_object(self, base_homework_id):
+        try:
+            return HomeWork.objects.prefetch_related('containing_set__question').get(id=base_homework_id)
+        except HomeWork.DoesNotExist:
+            raise Http404
+
     def get(self, request: Request, base_homework_id):
         """ Return the base_homework detail and the list of answers to specific base_homework for teacher. """
-        try:
-            base_homework = HomeWork.objects.prefetch_related('containing_set__question').get(id=base_homework_id)
-        except HomeWork.DoesNotExist:
-            return Response({"message": "This homework does not exist."}, status.HTTP_404_NOT_FOUND)
+        # try:
+        #     base_homework = HomeWork.objects.prefetch_related('containing_set__question').get(id=base_homework_id)
+        # except HomeWork.DoesNotExist:
+        #     return Response({"message": "This homework does not exist."}, status.HTTP_404_NOT_FOUND)
+        # if base_homework.teacher != request.user:
+        #     return Response({"message": "This homework is not yours."})
+        base_homework = self.get_object(base_homework_id)
         if base_homework.teacher != request.user:
             return Response({"message": "This homework is not yours."})
         sample_homeworks = SampleHomeWork.objects.filter(base_homework=base_homework)
@@ -128,6 +137,8 @@ class EditHomeWorkAPIView(APIView):
                         answers[i]["try_num"] += 1
         data = [{"homework_details": HomeWorkSerializer(base_homework).data}, {"answers": answers}]
         return Response(data, status.HTTP_200_OK)
+    
+    # def delete()
 
 
 class HomeWorksListAPIView(APIView):
