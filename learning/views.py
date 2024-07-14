@@ -106,15 +106,9 @@ class EditHomeWorkAPIView(APIView):
 
     def get(self, request: Request, base_homework_id):
         """ Return the base_homework detail and the list of answers to specific base_homework for teacher. """
-        # try:
-        #     base_homework = HomeWork.objects.prefetch_related('containing_set__question').get(id=base_homework_id)
-        # except HomeWork.DoesNotExist:
-        #     return Response({"message": "This homework does not exist."}, status.HTTP_404_NOT_FOUND)
-        # if base_homework.teacher != request.user:
-        #     return Response({"message": "This homework is not yours."})
         base_homework = self.get_object(base_homework_id)
         if base_homework.teacher != request.user:
-            return Response({"message": "This homework is not yours."})
+            return Response({"message": "This homework is not yours."}, status.HTTP_403_FORBIDDEN)
         sample_homeworks = SampleHomeWork.objects.filter(base_homework=base_homework)
         homework_answers = HomeWorkAnswer.objects.filter(sample_homework__in=sample_homeworks).select_related('sample_homework__student',
                                                                                                                 'sample_homework__base_homework')
@@ -138,7 +132,12 @@ class EditHomeWorkAPIView(APIView):
         data = [{"homework_details": HomeWorkSerializer(base_homework).data}, {"answers": answers}]
         return Response(data, status.HTTP_200_OK)
     
-    # def delete()
+    def delete(self, request: Request, base_homework_id):
+        base_homework = self.get_object(base_homework_id)
+        if base_homework.teacher != request.user:
+            return Response({"message": "This homework is not yours."}, status.HTTP_403_FORBIDDEN)
+        base_homework.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class HomeWorksListAPIView(APIView):
